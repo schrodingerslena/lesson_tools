@@ -39,29 +39,48 @@ const lessons=[
 {label:"CHALLENGE",q:"<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³. If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?",a:"<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mfrac><msup><mn>2</mn><mn>2</mn></msup><msup><mn>3</mn><mn>3</mn></msup></mfrac><mo>=</mo><mfrac><mn>4</mn><mn>27</mn></mfrac></math>"}
 ];
 function randomQuestion(){
-let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
-let count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
-let terms=Array.from({length:count},()=>({letter:letters.pop(),power:pick([1,1,2,3,.5])}));
-const factor=t=>t.power===1?italic(t.letter):t.power===.5?'<math xmlns="http://www.w3.org/1998/Math/MathML"><msqrt><mi>'+t.letter+'</mi></msqrt></math>':'the '+(t.power===2?'square':'cube')+' of '+italic(t.letter);
+const type=$('category').value,mode=$('format').value;
+const letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5);
+const y=letters.pop(),count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
+const terms=Array.from({length:count},()=>({letter:letters.pop(),power:pick([1,1,2,3,.5])}));
+const math=body=>'<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">'+body+'</math>';
+const mi=v=>'<mi>'+v+'</mi>',mn=v=>'<mn>'+v+'</mn>';
+const atom=t=>t.power===1?mi(t.letter):t.power===.5?'<msqrt>'+mi(t.letter)+'</msqrt>':'<msup>'+mi(t.letter)+mn(t.power)+'</msup>';
+const product=ts=>ts.map(atom).join('');
+const factor=t=>math(atom(t));
 const expr=ts=>ts.length===1?factor(ts[0]):'the product of '+ts.map(factor).join(' and ');
-let relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
-const tex=t=>t.power===1?italic(t.letter):t.power===.5?'√'+italic(t.letter):italic(t.letter)+(t.power===2?'²':'³');
-const mul=ts=>ts.map(tex).join(' × ');
-let formula=type==='inverse'?italic(y)+' = '+frac('<i>k</i>',mul(terms)):type==='combined'?italic(y)+' = '+frac('<i>k</i> × '+mul(terms.slice(0,-1)),tex(terms[terms.length-1])):type==='partly'?italic(y)+' = <i>a</i> + <i>k</i> × '+mul(terms):italic(y)+' = <i>k</i> × '+mul(terms);
-let q=italic(y)+' '+relation+'.';
-if(mode==='equation')return{label:'RANDOM · '+type.toUpperCase(),hint:'Formula only',q,a:formula};
-const samples=terms.map(t=>{let base=pick([2,3,4]);return{input:t.power===.5?base*base:base,val:t.power===.5?base:Math.pow(base,t.power)}});
-let numerator=type==='combined'?samples.slice(0,-1).reduce((a,s)=>a*s.val,1):samples.reduce((a,s)=>a*s.val,1),denominator=type==='combined'?samples[samples.length-1].val:type==='inverse'?numerator:1;
+const relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
+const fraction=(n,d)=>'<mfrac><mrow>'+n+'</mrow><mrow>'+d+'</mrow></mfrac>';
+const rhs=k=>{
+const numerator=mi('k')+product(terms.slice(0,-1));
+if(type==='inverse')return fraction(mi('k'),product(terms));
+if(type==='combined')return fraction(numerator,atom(terms[terms.length-1]));
+if(type==='partly')return mi('a')+'<mo>+</mo>'+mi('k')+product(terms);
+return mi('k')+product(terms);
+};
+const formula=math(mi(y)+'<mo>=</mo>'+rhs());
+let q='<i>'+y+'</i> '+relation+'.';
+if(mode==='equation')return{label:'RANDOM · '+type.toUpperCase(),q,a:formula};
+const samples=terms.map(t=>{const base=pick([2,3,4]);return{input:t.power===.5?base*base:base,val:t.power===.5?base:Math.pow(base,t.power)}});
+const allProduct=samples.reduce((a,v)=>a*v.val,1);
+const numProduct=type==='combined'?samples.slice(0,-1).reduce((a,v)=>a*v.val,1):allProduct;
+const denominator=type==='combined'?samples[samples.length-1].val:type==='inverse'?allProduct:1;
 let k=pick([1,2,3,4]),offset=type==='partly'?pick([2,3,5]):0;
-let observed=type==='inverse'?k/numerator:offset+k*numerator/denominator;
-if(type==='inverse'){k=pick([2,3])*numerator;observed=k/numerator}
-const display=n=>{if(Number.isInteger(n))return String(n);const gcd=(a,b)=>b?gcd(b,a%b):a;for(let d=2;d<=256;d++){let v=n*d;if(Math.abs(v-Math.round(v))<1e-9){let top=Math.round(v),g=gcd(Math.abs(top),d);return frac(String(top/g),String(d/g))}}return Number(n.toFixed(4)).toString()};
-let givens=terms.map((t,i)=>italic(t.letter)+' = '+samples[i].input).join(', ');
-q='It is given that '+q+' When '+givens+', '+italic(y)+' = '+display(observed)+'. ';
-if(type==='partly'){let t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+italic(t.letter)+' = '+newInput+', '+italic(y)+' = '+display(offset+k*newValue)+'. '}
-q+='Express '+italic(y)+' in terms of '+terms.map(t=>italic(t.letter)).join(' and ')+'.';
-let answer=type==='partly'?italic(y)+' = '+offset+' + '+k+' × '+mul(terms):formula.replace('<i>k</i>',String(k));
-return{label:'RANDOM · '+type.toUpperCase(),hint:'Find the equation',q,a:answer};
+if(type==='inverse')k=pick([2,3])*allProduct;
+const observed=offset+k*numProduct/denominator;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const numberMath=n=>{if(Number.isInteger(n))return mn(n);for(let d=2;d<=4096;d++){let v=n*d;if(Math.abs(v-Math.round(v))<1e-8){let top=Math.round(v),g=gcd(Math.abs(top),d);return fraction(mn(top/g),mn(d/g))}}return mn(Number(n.toFixed(4)))};
+const display=n=>math(numberMath(n));
+const givens=terms.map((t,i)=>math(mi(t.letter)+'<mo>=</mo>'+mn(samples[i].input))).join(', ');
+q='It is given that '+q+' When '+givens+', '+display(observed)+ ' is the value of '+math(mi(y))+'. ';
+if(type==='partly'){const t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+math(mi(t.letter)+'<mo>=</mo>'+mn(newInput))+', '+math(mi(y)+'<mo>=</mo>'+numberMath(offset+k*newValue))+'. '}
+q+='Express '+math(mi(y))+' in terms of '+terms.map(t=>math(mi(t.letter))).join(' and ')+'.';
+let ansRhs;
+if(type==='inverse')ansRhs=fraction(mn(k),product(terms));
+else if(type==='combined')ansRhs=fraction(mn(k)+product(terms.slice(0,-1)),atom(terms[terms.length-1]));
+else if(type==='partly')ansRhs=mn(offset)+'<mo>+</mo>'+mn(k)+product(terms);
+else ansRhs=mn(k)+product(terms);
+return{label:'RANDOM · '+type.toUpperCase(),q,a:math(mi(y)+'<mo>=</mo>'+ansRhs)};
 }
 function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').hidden=!lesson;$('previous').disabled=lesson&&index===0;$('next').disabled=lesson&&index===lessons.length-1}
 function switchMode(isLesson){lesson=isLesson;$('teacherTab').setAttribute('aria-pressed',String(lesson));$('randomTab').setAttribute('aria-pressed',String(!lesson));$('randomControls').hidden=lesson;if(!lesson)currentRandom=randomQuestion();render()}
