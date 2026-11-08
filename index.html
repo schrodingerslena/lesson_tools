@@ -19,8 +19,8 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 [hidden]{display:none!important}
 @media(max-width:600px){main{padding:18px 14px}.panel{padding:16px}.question{min-height:140px;padding:20px 0}.actions button{flex:1}}
 </style></head><body><main>
-<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">Random questions</button></div></header>
-<section id="teacherControls" class="panel"><div class="stage">WORKSHEET 4.2 · P.1–5</div><p class="muted">A fixed sequence for teaching joint direct and combined direct/inverse variation. Use Next to move through the lesson.</p>
+<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">More practice</button></div></header>
+<section id="teacherControls" class="panel" hidden><div class="stage">WORKSHEET 4.2 · P.1–5</div><p class="muted">A fixed sequence for teaching joint direct and combined direct/inverse variation. Use Next to move through the lesson.</p>
 <div class="controls"><label for="stageSelect">Jump to</label><select id="stageSelect"><option value="0">1 · Review: direct</option><option value="1">2 · Review: inverse</option><option value="2">3 · Joint direct: formula</option><option value="3">4 · Joint direct: find k</option><option value="4">5 · Joint direct: practice</option><option value="5">6 · Inquiry: direct + inverse</option><option value="6">7 · Combined: find k</option><option value="7">8 · Independent practice</option><option value="8">9 · Exit ticket</option></select></div></section>
 <section id="randomControls" class="panel" hidden><div class="controls"><label for="category">Variation</label><select id="category"><option value="direct">Direct</option><option value="inverse">Inverse</option><option value="joint">Joint</option><option value="partly">Partial</option><option value="combined">Combined</option></select>
 <label for="format">Question format</label><select id="format"><option value="equation">Formula only</option><option value="values">Find the equation (with values)</option></select></div></section>
@@ -55,7 +55,7 @@ if(mode==='equation')return{label:'RANDOM · '+type.toUpperCase(),hint:'Formula 
 const samples=terms.map(t=>{let base=pick([2,3,4]);return{input:t.power===.5?base*base:base,val:t.power===.5?base:Math.pow(base,t.power)}});
 let numerator=type==='combined'?samples.slice(0,-1).reduce((a,s)=>a*s.val,1):samples.reduce((a,s)=>a*s.val,1),denominator=type==='combined'?samples[samples.length-1].val:type==='inverse'?numerator:1;
 let k=pick([1,2,3,4]),offset=type==='partly'?pick([2,3,5]):0;
-let observed=type==='inverse'?k:offset+k*numerator/denominator;
+let observed=type==='inverse'?k/numerator:offset+k*numerator/denominator;
 if(type==='inverse'){k=pick([2,3])*numerator;observed=k/numerator}
 const display=n=>Number.isInteger(n)?String(n):Number(n.toFixed(4)).toString();
 let givens=terms.map((t,i)=>italic(t.letter)+' = '+samples[i].input).join(', ');
