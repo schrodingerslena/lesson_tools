@@ -19,21 +19,23 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 [hidden]{display:none!important}
 @media(max-width:600px){main{padding:18px 14px}.panel{padding:16px}.question{min-height:140px;padding:20px 0}.actions button{flex:1}}
 </style></head><body><main>
-<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">Random Practice</button></div></header>
+<header><div><h1>Variation Questions</h1></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">Random Practice</button></div></header>
 
 <section id="randomControls" class="panel" hidden><div class="controls"><label for="category">Variation</label><select id="category"><option value="direct">Direct</option><option value="inverse">Inverse</option><option value="joint">Joint</option><option value="partly">Partial</option><option value="combined">Combined</option></select>
 <label for="format">Question format</label><select id="format"><option value="equation">Formula only</option><option value="values">Find the equation (with values)</option></select></div></section>
-<section class="panel" aria-live="polite"><div id="stageLabel" class="stage"></div><p id="promptHint" class="hint"></p><div id="question" class="question"></div><div id="answer" class="answer" hidden></div>
+<section class="panel" aria-live="polite"><div id="stageLabel" class="stage"></div><div id="question" class="question"></div><div id="answer" class="answer" hidden></div>
 <div class="actions"><button id="reveal">Show answer</button><div class="tabs"><button id="previous">Previous</button><button id="next" class="primary">Next question →</button></div></div></section>
 </main><script>
 const $=id=>document.getElementById(id),italic=s=>'<i>'+s+'</i>',pick=a=>a[Math.floor(Math.random()*a.length)];
 const frac=(n,d)=>'<span class="fraction"><span class="num">'+n+'</span><span class="den">'+d+'</span></span>';
 let lesson=true,index=0,previousRandom='',currentRandom=null;
 const lessons=[
-{label:'STARTER · 1 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies directly as <i>x</i>².<br>Write the equation.',a:'<i>y</i> = <i>kx</i>²'},
-{label:'STARTER · 2 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies inversely as <i>z</i>³.<br>Write the equation.',a:'<i>y</i> = '+frac('<i>k</i>','<i>z</i>³')},
-{label:'EXIT TICKET · INDIVIDUAL',hint:'After worksheet P.4 · Write your answer without group help',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>Write the equation.',a:'<i>a</i> = '+frac('<i>kb</i>²','<i>c</i>³')},
-{label:'OPTIONAL CHALLENGE',hint:'Only if time allows · Extension',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:'Ratio of new to original <i>a</i> = '+frac('2²','3³')+' = <b>'+frac('4','27')+'</b>.'}
+{label:'DIRECT VARIATION · 1 / 2',q:'<i>y</i> varies directly as <i>x</i>².',a:'<i>y</i> = <i>kx</i>²'},
+{label:'DIRECT VARIATION · 2 / 2',q:'<i>p</i> varies directly as the square root of <i>q</i>.',a:'<i>p</i> = <i>k</i>√<i>q</i>'},
+{label:'INVERSE VARIATION · 1 / 2',q:'<i>y</i> varies inversely as <i>z</i>³.',a:'<i>y</i> = '+frac('<i>k</i>','<i>z</i>³')},
+{label:'INVERSE VARIATION · 2 / 2',q:'<i>a</i> varies inversely as the square root of <i>b</i>.',a:'<i>a</i> = '+frac('<i>k</i>','√<i>b</i>')},
+{label:'EXIT TICKET',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.',a:'<i>a</i> = '+frac('<i>kb</i>²','<i>c</i>³')},
+{label:'CHALLENGE',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³. If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:frac('2²','3³')+' = '+frac('4','27')}
 ];
 function randomQuestion(){
 let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
@@ -60,7 +62,7 @@ q+='Express '+italic(y)+' in terms of '+terms.map(t=>italic(t.letter)).join(' an
 let answer=type==='partly'?italic(y)+' = '+offset+' + '+k+' × '+mul(terms):formula.replace('<i>k</i>',String(k));
 return{label:'RANDOM · '+type.toUpperCase(),hint:'Find the equation',q,a:answer};
 }
-function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('promptHint').textContent=item.hint;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').disabled=lesson&&index===0}
+function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').hidden=!lesson;$('previous').disabled=lesson&&index===0;$('next').disabled=lesson&&index===lessons.length-1}
 function switchMode(isLesson){lesson=isLesson;$('teacherTab').setAttribute('aria-pressed',String(lesson));$('randomTab').setAttribute('aria-pressed',String(!lesson));$('randomControls').hidden=lesson;if(!lesson)currentRandom=randomQuestion();render()}
 $('teacherTab').onclick=()=>switchMode(true);$('randomTab').onclick=()=>switchMode(false);
 
