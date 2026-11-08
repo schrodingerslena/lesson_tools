@@ -13,7 +13,7 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 .panel{background:white;border:1px solid #dce4e9;border-radius:15px;padding:22px;margin-top:17px}
 .controls{margin-top:15px}.controls label{font-weight:600;font-size:14px}
 .question{font-size:clamp(25px,3.3vw,39px);line-height:1.65;min-height:170px;padding:35px 0;overflow-wrap:anywhere}
-.question i,.answer i{font-family:Georgia,serif}.answer math{font-size:1.2em;vertical-align:middle}.fraction{display:inline-flex;vertical-align:middle;align-items:center;flex-direction:column;line-height:1.15;font-size:.92em;margin:0 .12em}.fraction>.num{border-bottom:1.6px solid currentColor;padding:0 .22em .13em;text-align:center}.fraction>.den{padding:.13em .22em 0;text-align:center}.answer{font-size:clamp(22px,2.5vw,30px);line-height:1.6;background:#eef5f8;padding:18px 22px;border-radius:10px;margin-bottom:18px}
+.question i,.answer i{font-family:Georgia,serif}.question math{font-size:1em;vertical-align:middle}.answer math{font-size:1.2em;vertical-align:middle}.fraction{display:inline-flex;vertical-align:middle;align-items:center;flex-direction:column;line-height:1.15;font-size:.92em;margin:0 .12em}.fraction>.num{border-bottom:1.6px solid currentColor;padding:0 .22em .13em;text-align:center}.fraction>.den{padding:.13em .22em 0;text-align:center}.answer{font-size:clamp(22px,2.5vw,30px);line-height:1.6;background:#eef5f8;padding:18px 22px;border-radius:10px;margin-bottom:18px}
 .stage{font-size:14px;font-weight:700;color:#40627a}.hint{font-size:15px;color:#526b7c;margin:0 0 8px}
 .actions{justify-content:space-between;border-top:1px solid #e4eaee;padding-top:18px}
 [hidden]{display:none!important}
@@ -32,9 +32,9 @@ const mathParts=s=>{const clean=s.replace(/<\/?i>/g,'');let out='',i=0;while(i<c
 let lesson=true,index=0,previousRandom='',currentRandom=null;
 const lessons=[
 {label:'DIRECT VARIATION · 1 / 2',q:'<i>y</i> varies directly as <i>x</i>².',a:'<i>y</i> = <i>kx</i>²'},
-{label:'DIRECT VARIATION · 2 / 2',q:'<i>p</i> varies directly as the square root of <i>q</i>.',a:'<i>p</i> = <i>k</i>√<i>q</i>'},
+{label:'DIRECT VARIATION · 2 / 2',q:'<i>p</i> varies directly as <math xmlns="http://www.w3.org/1998/Math/MathML"><msqrt><mi>q</mi></msqrt></math>.',a:'<i>p</i> = <i>k</i><math xmlns="http://www.w3.org/1998/Math/MathML"><msqrt><mi>q</mi></msqrt></math>'},
 {label:'INVERSE VARIATION · 1 / 2',q:'<i>y</i> varies inversely as <i>z</i>³.',a:'<i>y</i> = '+frac('<i>k</i>','<i>z</i>³')},
-{label:'INVERSE VARIATION · 2 / 2',q:'<i>a</i> varies inversely as the square root of <i>b</i>.',a:'<i>a</i> = '+frac('<i>k</i>','√<i>b</i>')},
+{label:'INVERSE VARIATION · 2 / 2',q:'<i>a</i> varies inversely as <math xmlns="http://www.w3.org/1998/Math/MathML"><msqrt><mi>b</mi></msqrt></math>.',a:'<i>a</i> = '+frac('<i>k</i>','√<i>b</i>')},
 {label:'EXIT TICKET',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.',a:'<i>a</i> = '+frac('<i>kb</i>²','<i>c</i>³')},
 {label:'CHALLENGE',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³. If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:frac('2²','3³')+' = '+frac('4','27')}
 ];
@@ -42,7 +42,7 @@ function randomQuestion(){
 let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
 let count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
 let terms=Array.from({length:count},()=>({letter:letters.pop(),power:pick([1,1,2,3,.5])}));
-const factor=t=>t.power===1?italic(t.letter):t.power===.5?'the square root of '+italic(t.letter):'the '+(t.power===2?'square':'cube')+' of '+italic(t.letter);
+const factor=t=>t.power===1?italic(t.letter):t.power===.5?'<math xmlns="http://www.w3.org/1998/Math/MathML"><msqrt><mi>'+t.letter+'</mi></msqrt></math>':'the '+(t.power===2?'square':'cube')+' of '+italic(t.letter);
 const expr=ts=>ts.length===1?factor(ts[0]):'the product of '+ts.map(factor).join(' and ');
 let relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
 const tex=t=>t.power===1?italic(t.letter):t.power===.5?'√'+italic(t.letter):italic(t.letter)+(t.power===2?'²':'³');
