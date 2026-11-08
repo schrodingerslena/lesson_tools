@@ -13,7 +13,7 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 .panel{background:white;border:1px solid #dce4e9;border-radius:15px;padding:22px;margin-top:17px}
 .controls{margin-top:15px}.controls label{font-weight:600;font-size:14px}
 .question{font-size:clamp(25px,3.3vw,39px);line-height:1.65;min-height:170px;padding:35px 0;overflow-wrap:anywhere}
-.question i,.answer i{font-family:Georgia,serif}.answer{font-size:clamp(22px,2.5vw,30px);line-height:1.6;background:#eef5f8;padding:18px 22px;border-radius:10px;margin-bottom:18px}
+.question i,.answer i{font-family:Georgia,serif}.fraction{display:inline-flex;vertical-align:middle;align-items:center;flex-direction:column;line-height:1.15;font-size:.92em;margin:0 .12em}.fraction>.num{border-bottom:1.6px solid currentColor;padding:0 .22em .13em;text-align:center}.fraction>.den{padding:.13em .22em 0;text-align:center}.answer{font-size:clamp(22px,2.5vw,30px);line-height:1.6;background:#eef5f8;padding:18px 22px;border-radius:10px;margin-bottom:18px}
 .stage{font-size:14px;font-weight:700;color:#40627a}.hint{font-size:15px;color:#526b7c;margin:0 0 8px}
 .actions{justify-content:space-between;border-top:1px solid #e4eaee;padding-top:18px}
 [hidden]{display:none!important}
@@ -27,12 +27,13 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 <div class="actions"><button id="reveal">Show answer</button><div class="tabs"><button id="previous">Previous</button><button id="next" class="primary">Next question →</button></div></div></section>
 </main><script>
 const $=id=>document.getElementById(id),italic=s=>'<i>'+s+'</i>',pick=a=>a[Math.floor(Math.random()*a.length)];
+const frac=(n,d)=>'<span class="fraction"><span class="num">'+n+'</span><span class="den">'+d+'</span></span>';
 let lesson=true,index=0,previousRandom='',currentRandom=null;
 const lessons=[
 {label:'STARTER · 1 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies directly as <i>x</i>².<br>Write the equation.',a:'<i>y</i> = <i>kx</i>²'},
-{label:'STARTER · 2 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies inversely as <i>z</i>³.<br>Write the equation.',a:'<i>y</i> = <i>k</i> / <i>z</i>³'},
-{label:'EXIT TICKET · INDIVIDUAL',hint:'After worksheet P.4 · Write your answer without group help',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>Write the equation.',a:'<i>a</i> = <i>kb</i>² / <i>c</i>³'},
-{label:'OPTIONAL CHALLENGE',hint:'Only if time allows · Extension',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:'New <i>a</i> / original <i>a</i> = 2² / 3³ = <b>4/27</b>.'}
+{label:'STARTER · 2 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies inversely as <i>z</i>³.<br>Write the equation.',a:'<i>y</i> = '+frac('<i>k</i>','<i>z</i>³')},
+{label:'EXIT TICKET · INDIVIDUAL',hint:'After worksheet P.4 · Write your answer without group help',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>Write the equation.',a:'<i>a</i> = '+frac('<i>kb</i>²','<i>c</i>³')},
+{label:'OPTIONAL CHALLENGE',hint:'Only if time allows · Extension',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:'Ratio of new to original <i>a</i> = '+frac('2²','3³')+' = <b>'+frac('4','27')+'</b>.'}
 ];
 function randomQuestion(){
 let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
@@ -43,7 +44,7 @@ const expr=ts=>ts.length===1?factor(ts[0]):'the product of '+ts.map(factor).join
 let relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
 const tex=t=>t.power===1?italic(t.letter):t.power===.5?'√'+italic(t.letter):italic(t.letter)+(t.power===2?'²':'³');
 const mul=ts=>ts.map(tex).join(' × ');
-let formula=type==='inverse'?italic(y)+' = <i>k</i> / ('+mul(terms)+')':type==='combined'?italic(y)+' = <i>k</i> × '+mul(terms.slice(0,-1))+' / '+tex(terms[terms.length-1]):type==='partly'?italic(y)+' = <i>a</i> + <i>k</i> × '+mul(terms):italic(y)+' = <i>k</i> × '+mul(terms);
+let formula=type==='inverse'?italic(y)+' = '+frac('<i>k</i>',mul(terms)):type==='combined'?italic(y)+' = '+frac('<i>k</i> × '+mul(terms.slice(0,-1)),tex(terms[terms.length-1])):type==='partly'?italic(y)+' = <i>a</i> + <i>k</i> × '+mul(terms):italic(y)+' = <i>k</i> × '+mul(terms);
 let q=italic(y)+' '+relation+'.';
 if(mode==='equation')return{label:'RANDOM · '+type.toUpperCase(),hint:'Formula only',q,a:formula};
 const samples=terms.map(t=>{let base=pick([2,3,4]);return{input:t.power===.5?base*base:base,val:t.power===.5?base:Math.pow(base,t.power)}});
@@ -51,7 +52,7 @@ let numerator=type==='combined'?samples.slice(0,-1).reduce((a,s)=>a*s.val,1):sam
 let k=pick([1,2,3,4]),offset=type==='partly'?pick([2,3,5]):0;
 let observed=type==='inverse'?k/numerator:offset+k*numerator/denominator;
 if(type==='inverse'){k=pick([2,3])*numerator;observed=k/numerator}
-const display=n=>Number.isInteger(n)?String(n):Number(n.toFixed(4)).toString();
+const display=n=>{if(Number.isInteger(n))return String(n);const gcd=(a,b)=>b?gcd(b,a%b):a;for(let d=2;d<=256;d++){let v=n*d;if(Math.abs(v-Math.round(v))<1e-9){let top=Math.round(v),g=gcd(Math.abs(top),d);return frac(String(top/g),String(d/g))}}return Number(n.toFixed(4)).toString()};
 let givens=terms.map((t,i)=>italic(t.letter)+' = '+samples[i].input).join(', ');
 q='It is given that '+q+' When '+givens+', '+italic(y)+' = '+display(observed)+'. ';
 if(type==='partly'){let t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+italic(t.letter)+' = '+newInput+', '+italic(y)+' = '+display(offset+k*newValue)+'. '}
