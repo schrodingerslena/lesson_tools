@@ -19,9 +19,8 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 [hidden]{display:none!important}
 @media(max-width:600px){main{padding:18px 14px}.panel{padding:16px}.question{min-height:140px;padding:20px 0}.actions button{flex:1}}
 </style></head><body><main>
-<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">More practice</button></div></header>
-<section id="teacherControls" class="panel" hidden><div class="stage">WORKSHEET 4.2 · P.1–5</div><p class="muted">A fixed sequence for teaching joint direct and combined direct/inverse variation. Use Next to move through the lesson.</p>
-<div class="controls"><label for="stageSelect">Jump to</label><select id="stageSelect"><option value="0">1 · Review: direct</option><option value="1">2 · Review: inverse</option><option value="2">3 · Joint direct: formula</option><option value="3">4 · Joint direct: find k</option><option value="4">5 · Joint direct: practice</option><option value="5">6 · Inquiry: direct + inverse</option><option value="6">7 · Combined: find k</option><option value="7">8 · Independent practice</option><option value="8">9 · Exit ticket</option></select></div></section>
+<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">Random Practice</button></div></header>
+
 <section id="randomControls" class="panel" hidden><div class="controls"><label for="category">Variation</label><select id="category"><option value="direct">Direct</option><option value="inverse">Inverse</option><option value="joint">Joint</option><option value="partly">Partial</option><option value="combined">Combined</option></select>
 <label for="format">Question format</label><select id="format"><option value="equation">Formula only</option><option value="values">Find the equation (with values)</option></select></div></section>
 <section class="panel" aria-live="polite"><div id="stageLabel" class="stage"></div><p id="promptHint" class="hint"></p><div id="question" class="question"></div><div id="answer" class="answer" hidden></div>
@@ -30,16 +29,11 @@ button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-
 const $=id=>document.getElementById(id),italic=s=>'<i>'+s+'</i>',pick=a=>a[Math.floor(Math.random()*a.length)];
 let lesson=true,index=0,previousRandom='',currentRandom=null;
 const lessons=[
-{label:'REVIEW · DIRECT',hint:'Individual response · Formula only',q:'<i>y</i> varies directly as <i>x</i>².',a:'<i>y</i> = <i>kx</i>²'},
-{label:'REVIEW · INVERSE',hint:'Individual response · Formula only',q:'<i>y</i> varies inversely as <i>z</i>³.',a:'<i>y</i> = <i>k</i> / <i>z</i>³'},
-{label:'JOINT DIRECT · DISCOVER',hint:'Predict the formula before revealing',q:'<i>y</i> varies jointly as <i>x</i> and <i>z</i>³. Express <i>y</i> in terms of <i>x</i> and <i>z</i>.',a:'<i>y</i> = <i>kxz</i>³'},
-{label:'WORKSHEET P.1 · EXAMPLE 1',hint:'Find k, then find the new value',q:'<i>y</i> varies jointly as <i>x</i> and <i>z</i>³. When <i>x</i> = 1, <i>z</i> = 2, <i>y</i> = 24. Find <i>y</i> when <i>x</i> = 4 and <i>z</i> = 5.',a:'24 = <i>k</i>(1)(2³), so <i>k</i> = 3.<br><i>y</i> = 3<i>xz</i>³ = 3(4)(5³) = <b>1500</b>.'},
-{label:'WORKSHEET P.2 · INSTANT DRILL 1.1',hint:'Individual practice, then compare',q:'<i>y</i> varies jointly as <i>x</i>² and <i>z</i>. When <i>x</i> = 3, <i>z</i> = 4, <i>y</i> = 72. Find <i>y</i> when <i>x</i> = 6 and <i>z</i> = 7.',a:'72 = <i>k</i>(3²)(4), so <i>k</i> = 2.<br><i>y</i> = 2<i>x</i>²<i>z</i> = 2(6²)(7) = <b>504</b>.'},
-{label:'GROUP INQUIRY · DIRECT + INVERSE',hint:'Think individually → discuss in groups → show whiteboards',q:'<i>P</i> varies directly as <i>Q</i> and inversely as <i>R</i>².<br>1. Write the equation.<br>2. Explain the numerator and denominator.<br>3. What happens to <i>P</i> if <i>R</i> doubles and <i>Q</i> stays fixed?',a:'<i>P</i> = <i>kQ</i> / <i>R</i>².<br><i>Q</i> is direct (numerator); <i>R</i>² is inverse (denominator).<br><i>P</i> becomes <b>one-quarter</b>.'},
-{label:'WORKSHEET P.3 · EXAMPLE 2',hint:'Use the formula your group discovered',q:'<i>P</i> = <i>kQ</i> / <i>R</i>². When <i>Q</i> = 8, <i>R</i> = 2, <i>P</i> = 10. Find <i>Q</i> when <i>P</i> = 25 and <i>R</i> = 8.',a:'10 = 8<i>k</i> / 4, so <i>k</i> = 5.<br>25 = 5<i>Q</i> / 64, so <b><i>Q</i> = 320</b>.'},
-{label:'WORKSHEET P.4 · INSTANT DRILL 2.1',hint:'Independent practice · Challenge: continue to P.5',q:'<i>y</i> varies directly as <i>z</i> and inversely as √<i>x</i>. When <i>x</i> = 16, <i>z</i> = 16, <i>y</i> = 2. Find <i>y</i> when <i>x</i> = 36 and <i>z</i> = 10.',a:'<i>y</i> = <i>kz</i> / √<i>x</i>; 2 = 16<i>k</i> / 4, so <i>k</i> = 1/2.<br><i>y</i> = 10 / (2 × 6) = <b>5/6</b>.'},
-{label:'EXIT TICKET · INDIVIDUAL',hint:'Write your own answer before revealing',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>1. Write an equation.<br>2. What happens to <i>a</i> if <i>b</i> doubles and <i>c</i> stays unchanged?',a:'<i>a</i> = <i>kb</i>² / <i>c</i>³.<br><i>a</i> becomes <b>4 times</b> its original value.'}
-];
+{label:'STARTER · 1 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies directly as <i>x</i>².<br>Write the equation.',a:'<i>y</i> = <i>kx</i>²'},
+{label:'STARTER · 2 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies inversely as <i>z</i>³.<br>Write the equation.',a:'<i>y</i> = <i>k</i> / <i>z</i>³'},
+{label:'EXIT TICKET · INDIVIDUAL',hint:'After worksheet P.4 · Write your answer without group help',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>Write the equation.',a:'<i>a</i> = <i>kb</i>² / <i>c</i>³'},
+{label:'OPTIONAL CHALLENGE',hint:'Only if time allows · Extension',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:'New <i>a</i> / original <i>a</i> = 2² / 3³ = <b>4/27</b>.'}
+
 function randomQuestion(){
 let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
 let count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
@@ -65,12 +59,12 @@ q+='Express '+italic(y)+' in terms of '+terms.map(t=>italic(t.letter)).join(' an
 let answer=type==='partly'?italic(y)+' = '+offset+' + '+k+' × '+mul(terms):formula.replace('<i>k</i>',String(k));
 return{label:'RANDOM · '+type.toUpperCase(),hint:'Find the equation',q,a:answer};
 }
-function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('promptHint').textContent=item.hint;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').disabled=lesson&&index===0;$('stageSelect').value=String(index)}
-function switchMode(isLesson){lesson=isLesson;$('teacherTab').setAttribute('aria-pressed',String(lesson));$('randomTab').setAttribute('aria-pressed',String(!lesson));$('teacherControls').hidden=!lesson;$('randomControls').hidden=lesson;if(!lesson)currentRandom=randomQuestion();render()}
+function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('promptHint').textContent=item.hint;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').disabled=lesson&&index===0}
+function switchMode(isLesson){lesson=isLesson;$('teacherTab').setAttribute('aria-pressed',String(lesson));$('randomTab').setAttribute('aria-pressed',String(!lesson));$('randomControls').hidden=lesson;if(!lesson)currentRandom=randomQuestion();render()}
 $('teacherTab').onclick=()=>switchMode(true);$('randomTab').onclick=()=>switchMode(false);
-$('stageSelect').onchange=e=>{index=Number(e.target.value);render()};
+
 $('category').onchange=$('format').onchange=()=>{currentRandom=randomQuestion();render()};
 $('reveal').onclick=()=>{let a=$('answer');a.hidden=!a.hidden;$('reveal').textContent=a.hidden?'Show answer':'Hide answer'};
-$('next').onclick=()=>{if(lesson)index=(index+1)%lessons.length;else{let item;do{item=randomQuestion()}while(item.q===previousRandom);currentRandom=item;previousRandom=item.q}render()};
+$('next').onclick=()=>{if(lesson)index=Math.min(index+1,lessons.length-1);else{let item;do{item=randomQuestion()}while(item.q===previousRandom);currentRandom=item;previousRandom=item.q}render()};
 $('previous').onclick=()=>{if(index>0){index--;render()}};render();
 </script></body></html>
