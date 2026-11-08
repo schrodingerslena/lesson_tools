@@ -33,7 +33,7 @@ const lessons=[
 {label:'STARTER · 2 OF 2',hint:'Recall · Write the equation individually',q:'<i>y</i> varies inversely as <i>z</i>³.<br>Write the equation.',a:'<i>y</i> = <i>k</i> / <i>z</i>³'},
 {label:'EXIT TICKET · INDIVIDUAL',hint:'After worksheet P.4 · Write your answer without group help',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>Write the equation.',a:'<i>a</i> = <i>kb</i>² / <i>c</i>³'},
 {label:'OPTIONAL CHALLENGE',hint:'Only if time allows · Extension',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>If <i>b</i> doubles and <i>c</i> triples, what happens to <i>a</i>?',a:'New <i>a</i> / original <i>a</i> = 2² / 3³ = <b>4/27</b>.'}
-
+];
 function randomQuestion(){
 let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
 let count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
