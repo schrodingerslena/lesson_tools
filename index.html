@@ -1,33 +1,76 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Variation Questions</title><style>*{box-sizing:border-box}body{margin:0;background:#f7f8fa;color:#20343b;font-family:Arial,sans-serif}main{max-width:1000px;margin:70px auto;padding:24px}nav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #dce3e4;padding-bottom:24px}button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:13px 17px;color:#344e53;background:transparent}button[aria-pressed=true]{background:#e0eeea;color:#195e50}#next{background:#205f52;color:white}#question{font-size:26px;line-height:1.9;padding:40px 0;min-height:230px}i{font-family:Georgia,serif}button:focus-visible{outline:3px solid #75af9f;outline-offset:3px}@media(max-width:600px){main{margin:16px auto;padding:18px}#question{font-size:22px}nav button{padding:10px;font-size:14px}}</style><main><nav aria-label="Question format"><button data-mode="values" aria-pressed="true">Find the equation</button><button data-mode="equation" aria-pressed="false">Write the equation</button></nav><nav aria-label="Variation type"><button data-type="direct" aria-pressed="true">Direct variation</button><button data-type="inverse" aria-pressed="false">Inverse variation</button><button data-type="joint" aria-pressed="false">Joint variation</button><button data-type="partly" aria-pressed="false">Partial variation</button><button data-type="combined" aria-pressed="false">Combined variation</button></nav><div id="question" aria-live="polite"></div><button id="next">Next question</button></main><script>
-const pick=a=>a[Math.floor(Math.random()*a.length)],v=s=>'<i>'+s+'</i>';let type='direct',mode='values',previous='';
-const join=a=>a.length<3?a.join(' and '):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
-function generate(){
-let letters=['a','b','c','p','q','r','x','y','z','u','t','s'];
-for(let i=letters.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[letters[i],letters[j]]=[letters[j],letters[i]]}
-let y=letters.pop(),count=type==='combined'?pick([2,3]):type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,1,2,3]);
-let terms=Array.from({length:count},()=>{let letter=letters.pop(),power=pick([1,1,.5,2,3]);return{letter,power,words:power===1?v(letter):power===.5?'the square root of '+v(letter):'the '+(power===2?'square':'cube')+' of '+v(letter)}});
-let samples=terms.map(t=>{let n=pick([2,3,4]);return{input:t.power===.5?n*n:n,value:t.power===.5?n:n**t.power}});
-let product=samples.reduce((a,b)=>a*b.value,1),k=pick([1,2,3,4,5,6,.5,1.5]),offset=pick([2,3,4,5,6,8,10]);
-if(type==='inverse')k=product*pick([1,2,3]);
-let out=type==='inverse'?k/product:k*product+(type==='partly'?offset:0);
-if(type==='combined'){
-const numerator=samples.slice(0,-1).reduce((a,b)=>a*b.value,1),denominator=samples[samples.length-1].value;
-let top=Math.round(k*2)*numerator,bottom=2*denominator;
-const gcd=(a,b)=>b?gcd(b,a%b):a;const divisor=gcd(top,bottom);top/=divisor;bottom/=divisor;
-out=bottom===1?String(top):top+'/'+bottom;
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Variation Question Generator</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#172c39;background:#f5f7f9}*{box-sizing:border-box}
+body{margin:0}main{max-width:1080px;margin:0 auto;padding:28px 24px 70px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+h1{font-size:clamp(24px,3vw,34px);margin:0;letter-spacing:-.03em}small,.muted{color:#657783}
+.tabs,.controls,.actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+button,select{font:inherit;border:1px solid #cbd6dc;background:white;color:#203746;border-radius:9px;padding:11px 14px;cursor:pointer}
+button[aria-pressed=true]{background:#174f68;color:white;border-color:#174f68}
+button.primary{background:#174f68;color:white;border-color:#174f68}button:focus-visible,select:focus-visible{outline:3px solid #66a8d3;outline-offset:2px}
+.panel{background:white;border:1px solid #dce4e9;border-radius:15px;padding:22px;margin-top:17px}
+.controls{margin-top:15px}.controls label{font-weight:600;font-size:14px}
+.question{font-size:clamp(25px,3.3vw,39px);line-height:1.65;min-height:170px;padding:35px 0;overflow-wrap:anywhere}
+.question i,.answer i{font-family:Georgia,serif}.answer{font-size:clamp(22px,2.5vw,30px);line-height:1.6;background:#eef5f8;padding:18px 22px;border-radius:10px;margin-bottom:18px}
+.stage{font-size:14px;font-weight:700;color:#40627a}.hint{font-size:15px;color:#526b7c;margin:0 0 8px}
+.actions{justify-content:space-between;border-top:1px solid #e4eaee;padding-top:18px}
+[hidden]{display:none!important}
+@media(max-width:600px){main{padding:18px 14px}.panel{padding:16px}.question{min-height:140px;padding:20px 0}.actions button{flex:1}}
+</style></head><body><main>
+<header><div><h1>Variation Questions</h1><small>S5 Mathematics · Clear questions, one at a time</small></div><div class="tabs" role="group" aria-label="Mode"><button id="teacherTab" aria-pressed="true">Lesson mode</button><button id="randomTab" aria-pressed="false">Random questions</button></div></header>
+<section id="teacherControls" class="panel"><div class="stage">WORKSHEET 4.2 · P.1–5</div><p class="muted">A fixed sequence for teaching joint direct and combined direct/inverse variation. Use Next to move through the lesson.</p>
+<div class="controls"><label for="stageSelect">Jump to</label><select id="stageSelect"><option value="0">1 · Review: direct</option><option value="1">2 · Review: inverse</option><option value="2">3 · Joint direct: formula</option><option value="3">4 · Joint direct: find k</option><option value="4">5 · Joint direct: practice</option><option value="5">6 · Inquiry: direct + inverse</option><option value="6">7 · Combined: find k</option><option value="7">8 · Independent practice</option><option value="8">9 · Exit ticket</option></select></div></section>
+<section id="randomControls" class="panel" hidden><div class="controls"><label for="category">Variation</label><select id="category"><option value="direct">Direct</option><option value="inverse">Inverse</option><option value="joint">Joint</option><option value="partly">Partial</option><option value="combined">Combined</option></select>
+<label for="format">Question format</label><select id="format"><option value="equation">Formula only</option><option value="values">Find the equation (with values)</option></select></div></section>
+<section class="panel" aria-live="polite"><div id="stageLabel" class="stage"></div><p id="promptHint" class="hint"></p><div id="question" class="question"></div><div id="answer" class="answer" hidden></div>
+<div class="actions"><button id="reveal">Show answer</button><div class="tabs"><button id="previous">Previous</button><button id="next" class="primary">Next question →</button></div></div></section>
+</main><script>
+const $=id=>document.getElementById(id),italic=s=>'<i>'+s+'</i>',pick=a=>a[Math.floor(Math.random()*a.length)];
+let lesson=true,index=0,previousRandom='',currentRandom=null;
+const lessons=[
+{label:'REVIEW · DIRECT',hint:'Individual response · Formula only',q:'<i>y</i> varies directly as <i>x</i>².',a:'<i>y</i> = <i>kx</i>²'},
+{label:'REVIEW · INVERSE',hint:'Individual response · Formula only',q:'<i>y</i> varies inversely as <i>z</i>³.',a:'<i>y</i> = <i>k</i> / <i>z</i>³'},
+{label:'JOINT DIRECT · DISCOVER',hint:'Predict the formula before revealing',q:'<i>y</i> varies jointly as <i>x</i> and <i>z</i>³. Express <i>y</i> in terms of <i>x</i> and <i>z</i>.',a:'<i>y</i> = <i>kxz</i>³'},
+{label:'WORKSHEET P.1 · EXAMPLE 1',hint:'Find k, then find the new value',q:'<i>y</i> varies jointly as <i>x</i> and <i>z</i>³. When <i>x</i> = 1, <i>z</i> = 2, <i>y</i> = 24. Find <i>y</i> when <i>x</i> = 4 and <i>z</i> = 5.',a:'24 = <i>k</i>(1)(2³), so <i>k</i> = 3.<br><i>y</i> = 3<i>xz</i>³ = 3(4)(5³) = <b>1500</b>.'},
+{label:'WORKSHEET P.2 · INSTANT DRILL 1.1',hint:'Individual practice, then compare',q:'<i>y</i> varies jointly as <i>x</i>² and <i>z</i>. When <i>x</i> = 3, <i>z</i> = 4, <i>y</i> = 72. Find <i>y</i> when <i>x</i> = 6 and <i>z</i> = 7.',a:'72 = <i>k</i>(3²)(4), so <i>k</i> = 2.<br><i>y</i> = 2<i>x</i>²<i>z</i> = 2(6²)(7) = <b>504</b>.'},
+{label:'GROUP INQUIRY · DIRECT + INVERSE',hint:'Think individually → discuss in groups → show whiteboards',q:'<i>P</i> varies directly as <i>Q</i> and inversely as <i>R</i>².<br>1. Write the equation.<br>2. Explain the numerator and denominator.<br>3. What happens to <i>P</i> if <i>R</i> doubles and <i>Q</i> stays fixed?',a:'<i>P</i> = <i>kQ</i> / <i>R</i>².<br><i>Q</i> is direct (numerator); <i>R</i>² is inverse (denominator).<br><i>P</i> becomes <b>one-quarter</b>.'},
+{label:'WORKSHEET P.3 · EXAMPLE 2',hint:'Use the formula your group discovered',q:'<i>P</i> = <i>kQ</i> / <i>R</i>². When <i>Q</i> = 8, <i>R</i> = 2, <i>P</i> = 10. Find <i>Q</i> when <i>P</i> = 25 and <i>R</i> = 8.',a:'10 = 8<i>k</i> / 4, so <i>k</i> = 5.<br>25 = 5<i>Q</i> / 64, so <b><i>Q</i> = 320</b>.'},
+{label:'WORKSHEET P.4 · INSTANT DRILL 2.1',hint:'Independent practice · Challenge: continue to P.5',q:'<i>y</i> varies directly as <i>z</i> and inversely as √<i>x</i>. When <i>x</i> = 16, <i>z</i> = 16, <i>y</i> = 2. Find <i>y</i> when <i>x</i> = 36 and <i>z</i> = 10.',a:'<i>y</i> = <i>kz</i> / √<i>x</i>; 2 = 16<i>k</i> / 4, so <i>k</i> = 1/2.<br><i>y</i> = 10 / (2 × 6) = <b>5/6</b>.'},
+{label:'EXIT TICKET · INDIVIDUAL',hint:'Write your own answer before revealing',q:'<i>a</i> varies directly as <i>b</i>² and inversely as <i>c</i>³.<br>1. Write an equation.<br>2. What happens to <i>a</i> if <i>b</i> doubles and <i>c</i> stays unchanged?',a:'<i>a</i> = <i>kb</i>² / <i>c</i>³.<br><i>a</i> becomes <b>4 times</b> its original value.'}
+];
+function randomQuestion(){
+let type=$('category').value,mode=$('format').value,letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5),y=letters.pop();
+let count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
+let terms=Array.from({length:count},()=>({letter:letters.pop(),power:pick([1,1,2,3,.5])}));
+const factor=t=>t.power===1?italic(t.letter):t.power===.5?'the square root of '+italic(t.letter):'the '+(t.power===2?'square':'cube')+' of '+italic(t.letter);
+const expr=ts=>ts.length===1?factor(ts[0]):'the product of '+ts.map(factor).join(' and ');
+let relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
+const tex=t=>t.power===1?italic(t.letter):t.power===.5?'√'+italic(t.letter):italic(t.letter)+(t.power===2?'²':'³');
+const mul=ts=>ts.map(tex).join(' × ');
+let formula=type==='inverse'?italic(y)+' = <i>k</i> / ('+mul(terms)+')':type==='combined'?italic(y)+' = <i>k</i> × '+mul(terms.slice(0,-1))+' / '+tex(terms[terms.length-1]):type==='partly'?italic(y)+' = <i>a</i> + <i>k</i> × '+mul(terms):italic(y)+' = <i>k</i> × '+mul(terms);
+let q=italic(y)+' '+relation+'.';
+if(mode==='equation')return{label:'RANDOM · '+type.toUpperCase(),hint:'Formula only',q,a:formula};
+const samples=terms.map(t=>{let base=pick([2,3,4]);return{input:t.power===.5?base*base:base,val:t.power===.5?base:Math.pow(base,t.power)}});
+let numerator=type==='combined'?samples.slice(0,-1).reduce((a,s)=>a*s.val,1):samples.reduce((a,s)=>a*s.val,1),denominator=type==='combined'?samples[samples.length-1].val:type==='inverse'?numerator:1;
+let k=pick([1,2,3,4]),offset=type==='partly'?pick([2,3,5]):0;
+let observed=type==='inverse'?k:offset+k*numerator/denominator;
+if(type==='inverse'){k=pick([2,3])*numerator;observed=k/numerator}
+const display=n=>Number.isInteger(n)?String(n):Number(n.toFixed(4)).toString();
+let givens=terms.map((t,i)=>italic(t.letter)+' = '+samples[i].input).join(', ');
+q='It is given that '+q+' When '+givens+', '+italic(y)+' = '+display(observed)+'. ';
+if(type==='partly'){let t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+italic(t.letter)+' = '+newInput+', '+italic(y)+' = '+display(offset+k*newValue)+'. '}
+q+='Express '+italic(y)+' in terms of '+terms.map(t=>italic(t.letter)).join(' and ')+'.';
+let answer=type==='partly'?italic(y)+' = '+offset+' + '+k+' × '+mul(terms):formula.replace('<i>k</i>',String(k));
+return{label:'RANDOM · '+type.toUpperCase(),hint:'Find the equation',q,a:answer};
 }
-let expression=count===1?terms[0].words:'the product of '+join(terms.map(t=>t.words));
-let relation=type==='direct'?'varies directly as '+expression:type==='inverse'?'varies inversely as '+expression:type==='joint'?'varies jointly as '+join(terms.map(t=>t.words)):'is partly constant and partly varies directly as '+expression;
-if(type==='combined'){
-const direct=terms.slice(0,-1),inverse=terms[terms.length-1];
-relation=(direct.length===1?'varies directly as '+direct[0].words:'varies jointly as '+join(direct.map(t=>t.words)))+' and inversely as '+inverse.words;
-}
-if(mode==='equation')return v(y)+' '+relation+'.';
-let observation=samples.map((s,i)=>v(terms[i].letter)+' = '+s.input).join(', ')+', '+v(y)+' = '+out;
-let text='It is given that '+v(y)+' '+relation+'. When '+observation+'. ';
-if(type==='partly'){let t=terms[0],n=pick([5,6]),input=t.power===.5?n*n:n,value=t.power===.5?n:n**t.power;text+='When '+v(t.letter)+' = '+input+', '+v(y)+' = '+(offset+k*value)+'. '}
-return text+'Express '+v(y)+' in terms of '+join(terms.map(t=>v(t.letter)))+'.';
-}
-function next(){let text;do{text=generate()}while(text===previous);previous=text;document.getElementById('question').innerHTML=text}
-document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{type=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));next()});document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));next()});document.getElementById('next').onclick=next;next();
-</script></html>
+function render(){let item=lesson?lessons[index]:currentRandom;$('stageLabel').textContent=item.label;$('promptHint').textContent=item.hint;$('question').innerHTML=item.q;$('answer').innerHTML=item.a;$('answer').hidden=true;$('reveal').textContent='Show answer';$('previous').disabled=lesson&&index===0;$('stageSelect').value=String(index)}
+function switchMode(isLesson){lesson=isLesson;$('teacherTab').setAttribute('aria-pressed',String(lesson));$('randomTab').setAttribute('aria-pressed',String(!lesson));$('teacherControls').hidden=!lesson;$('randomControls').hidden=lesson;if(!lesson)currentRandom=randomQuestion();render()}
+$('teacherTab').onclick=()=>switchMode(true);$('randomTab').onclick=()=>switchMode(false);
+$('stageSelect').onchange=e=>{index=Number(e.target.value);render()};
+$('category').onchange=$('format').onchange=()=>{currentRandom=randomQuestion();render()};
+$('reveal').onclick=()=>{let a=$('answer');a.hidden=!a.hidden;$('reveal').textContent=a.hidden?'Show answer':'Hide answer'};
+$('next').onclick=()=>{if(lesson)index=(index+1)%lessons.length;else{let item;do{item=randomQuestion()}while(item.q===previousRandom);currentRandom=item;previousRandom=item.q}render()};
+$('previous').onclick=()=>{if(index>0){index--;render()}};render();
+</script></body></html>
