@@ -41,7 +41,8 @@ const lessons=[
 function randomQuestion(){
 const type=$('category').value,mode=$('format').value;
 const letters=['a','b','c','p','q','r','x','y','z','u','t','s'].sort(()=>Math.random()-.5);
-const y=letters.pop(),count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?1:pick([1,1,2,3]);
+const variablePartial=type==='partly'&&Math.random()<.5;
+const y=letters.pop(),count=type==='combined'||type==='joint'?pick([2,3]):type==='partly'?(variablePartial?2:1):pick([1,1,2,3]);
 const terms=Array.from({length:count},()=>({letter:letters.pop(),power:pick([1,1,2,3,.5])}));
 const math=body=>'<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">'+body+'</math>';
 const mi=v=>'<mi>'+v+'</mi>',mn=v=>'<mn>'+v+'</mn>';
@@ -49,13 +50,16 @@ const atom=t=>t.power===1?mi(t.letter):t.power===.5?'<msqrt>'+mi(t.letter)+'</ms
 const product=ts=>ts.map(atom).join('');
 const factor=t=>math(atom(t));
 const expr=ts=>ts.length===1?factor(ts[0]):'the product of '+ts.map(factor).join(' and ');
-const relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?'is partly constant and partly varies directly as '+expr(terms):(terms.length===2?'varies directly as '+factor(terms[0]):'varies jointly as '+terms.slice(0,-1).map(factor).join(' and '))+' and inversely as '+factor(terms[terms.length-1]);
+const secondPartialRelation=pick(['directly','inversely']);
+const relation=type==='direct'?'varies directly as '+expr(terms):type==='inverse'?'varies inversely as '+expr(terms):type==='joint'?'varies jointly as '+terms.map(factor).join(' and '):type==='partly'?(variablePartial?'varies partly directly as '+factor(terms[0])+' and partly '+secondPartialRelation+' as '+factor(terms[1]):'is partly constant and partly varies directly as '+expr(terms)):'varies directly as '+expr(terms.slice(0,-1))+' and inversely as '+factor(terms[terms.length-1]);
 const fraction=(n,d)=>'<mfrac><mrow>'+n+'</mrow><mrow>'+d+'</mrow></mfrac>';
-const rhs=k=>{
+const partialSecond=coefficient=>secondPartialRelation==='inversely'?fraction(coefficient,atom(terms[1])):coefficient+atom(terms[1]);
+const rhs=()=>{
+if(variablePartial)return mi('k')+atom(terms[0])+'<mo>+</mo>'+partialSecond(mi('m'));
 const numerator=mi('k')+product(terms.slice(0,-1));
 if(type==='inverse')return fraction(mi('k'),product(terms));
 if(type==='combined')return fraction(numerator,atom(terms[terms.length-1]));
-if(type==='partly')return mi('a')+'<mo>+</mo>'+mi('k')+product(terms);
+if(type==='partly')return mi('m')+'<mo>+</mo>'+mi('k')+product(terms);
 return mi('k')+product(terms);
 };
 const formula=math(mi(y)+'<mo>=</mo>'+rhs());
@@ -67,17 +71,20 @@ const numProduct=type==='combined'?samples.slice(0,-1).reduce((a,v)=>a*v.val,1):
 const denominator=type==='combined'?samples[samples.length-1].val:type==='inverse'?allProduct:1;
 let k=pick([1,2,3,4]),offset=type==='partly'?pick([2,3,5]):0;
 if(type==='inverse')k=pick([2,3])*allProduct;
-const observed=offset+k*numProduct/denominator;
+const secondCoefficient=variablePartial&&secondPartialRelation==='inversely'?offset*samples[1].val:offset;
+const secondValue=variablePartial?(secondPartialRelation==='inversely'?secondCoefficient/samples[1].val:secondCoefficient*samples[1].val):offset;
+const observed=variablePartial?k*samples[0].val+secondValue:offset+k*numProduct/denominator;
 const gcd=(a,b)=>b?gcd(b,a%b):a;
 const numberMath=n=>{if(Number.isInteger(n))return mn(n);for(let d=2;d<=4096;d++){let v=n*d;if(Math.abs(v-Math.round(v))<1e-8){let top=Math.round(v),g=gcd(Math.abs(top),d);return fraction(mn(top/g),mn(d/g))}}return mn(Number(n.toFixed(4)))};
 const display=n=>math(numberMath(n));
 const givens=terms.map((t,i)=>math(mi(t.letter)+'<mo>=</mo>'+mn(samples[i].input))).join(', ');
 q='It is given that '+q+' When '+givens+', '+display(observed)+ ' is the value of '+math(mi(y))+'. ';
-if(type==='partly'){const t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+math(mi(t.letter)+'<mo>=</mo>'+mn(newInput))+', '+math(mi(y)+'<mo>=</mo>'+numberMath(offset+k*newValue))+'. '}
+if(type==='partly'){const t=terms[0],newInput=t.power===.5?25:5,newValue=t.power===.5?5:Math.pow(5,t.power);q+='When '+math(mi(t.letter)+'<mo>=</mo>'+mn(newInput))+(variablePartial?', '+math(mi(terms[1].letter)+'<mo>=</mo>'+mn(samples[1].input)):'')+', '+math(mi(y)+'<mo>=</mo>'+numberMath(secondValue+k*newValue))+'. '}
 q+='Express '+math(mi(y))+' in terms of '+terms.map(t=>math(mi(t.letter))).join(' and ')+'.';
 let ansRhs;
 if(type==='inverse')ansRhs=fraction(mn(k),product(terms));
 else if(type==='combined')ansRhs=fraction(mn(k)+product(terms.slice(0,-1)),atom(terms[terms.length-1]));
+else if(variablePartial)ansRhs=mn(k)+atom(terms[0])+'<mo>+</mo>'+partialSecond(mn(secondCoefficient));
 else if(type==='partly')ansRhs=mn(offset)+'<mo>+</mo>'+mn(k)+product(terms);
 else ansRhs=mn(k)+product(terms);
 return{label:'RANDOM · '+type.toUpperCase(),q,a:math(mi(y)+'<mo>=</mo>'+ansRhs)};
