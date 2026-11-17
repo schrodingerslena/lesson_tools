@@ -187,7 +187,9 @@ function draw(){
       const result=el('result');
       if(entry==='cut'){
         const uniform=!state.vertical&&Math.hypot(state.tiltX,state.tiltY)<1e-8;
-        result.textContent=flat.length<3?'No cross section':uniform?'Uniform cross section':'Not a uniform cross section';
+        const status=flat.length<3?'No cross section':uniform?'Uniform cross section':'Not a uniform cross section';
+        const extent=Math.max(2,...flat.flat().map(Math.abs))*1.12;
+        result.innerHTML='<figure style="margin:0 0 .75rem;width:min(100%,140px);padding:8px;border:1px solid #b6c8c6;border-radius:10px"><figcaption>Cross section</figcaption><svg viewBox="-'+extent+' -'+extent+' '+(2*extent)+' '+(2*extent)+'" role="img" aria-label="Cross-section shape viewed straight on">'+(flat.length>=3?polygon(flat,'#f6af55','style="stroke-width:.035"'):'')+'</svg></figure>'+status;
       }else if(state.reveal&&flat.length>=3){
         const area=Math.abs(flat.reduce((sum,[x,y],i)=>{const [a,b]=flat[(i+1)%flat.length];return sum+x*b-y*a;},0))/2;
         const extent=Math.max(2,...flat.flat().map(Math.abs));
