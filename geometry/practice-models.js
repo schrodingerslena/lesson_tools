@@ -112,11 +112,17 @@ function draw(){
     html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#ffcb77"/><stop offset=".48" stop-color="#ed8b32"/><stop offset="1" stop-color="#8d3915"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
     // Rotate the markings with the sphere, using the same camera as the other solids.
     const radius=112/83;
+    // Two central seams and a bowed panel seam on each side.
+    const panelSeam=side=>angle=>{
+      const along=Math.cos(angle);
+      const offset=side*(.46+.41*along*along);
+      const width=Math.sqrt(1-offset*offset);
+      return [radius*width*along,radius*offset,radius*width*Math.sin(angle)];
+    };
     const guides=[
-      a=>[radius*Math.cos(a),radius*Math.sin(a),0],
-      a=>[radius*Math.cos(a),0,radius*Math.sin(a)],
-      a=>[radius*.87*Math.cos(a),radius*.49,radius*.87*Math.sin(a)],
-      a=>[radius*.87*Math.cos(a),-radius*.49,radius*.87*Math.sin(a)]
+      angle=>[radius*Math.cos(angle),radius*Math.sin(angle),0],
+      angle=>[radius*Math.cos(angle),0,radius*Math.sin(angle)],
+      panelSeam(1),panelSeam(-1)
     ];
     for(const guide of guides){
       const points=loop(121).map(i=>project(guide(i*Math.PI/60)));
