@@ -191,10 +191,13 @@ function draw(){
     if(state.chapter===0&&state.topic===2){
       const labels=state.shape===0?'ABCDGHEF':'ABCDEFGHIJKL';
       const colors=['#9d202d','#135e9a','#176136','#64358c','#854814','#00676b','#a32568','#444c93','#695800','#405e24','#944024','#344155'];
-      pts.forEach(([x,y],i)=>{
-        html+='<g pointer-events="none" fill="'+colors[i]+'"><circle cx="'+x+'" cy="'+y+'" r="4.5" stroke="white" stroke-width="1.5"/><text x="'+x+'" y="'+(y-8)+'" text-anchor="middle" font-weight="bold" paint-order="stroke" stroke="white" stroke-width="4">'+labels[i]+'</text></g>';
-      });
       const selected=faces[state.selected];
+      const vertexOrder=loop(pts.length).sort((a,b)=>Number(selected?.includes(a)??false)-Number(selected?.includes(b)??false));
+      vertexOrder.forEach(i=>{
+        const [x,y]=pts[i];
+        const enlarged=selected?.includes(i);
+        html+='<g pointer-events="none" fill="'+colors[i]+'"><circle cx="'+x+'" cy="'+y+'" r="'+(enlarged?7:4.5)+'" stroke="white" stroke-width="1.5"/><text x="'+x+'" y="'+(y-(enlarged?12:8))+'" font-size="'+(enlarged?26:16)+'" text-anchor="middle" font-weight="bold" paint-order="stroke" stroke="white" stroke-width="4">'+labels[i]+'</text></g>';
+      });
       el('result').innerHTML=selected
         ? 'Face <strong>'+selected.map(i=>'<span style="color:'+colors[i]+'">'+labels[i]+'</span>').join('')+'</strong>'
         : 'Blue and purple mark the two bases.';
