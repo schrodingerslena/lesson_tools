@@ -154,9 +154,13 @@ function change(chapter,topic){
   resetCut();
   if(chapter===1&&topic===0)Object.assign(state,{parallel:false,tiltX:.8,tiltY:.25});
 }
+const entry=new URLSearchParams(location.search).get('topic');
+const entryTopics={solids:[0,0,3],cut:[1,0,2],sketch:[1,2,5]};
+const section=Object.hasOwn(entryTopics,entry)?entryTopics[entry]:null;
 function render(){
-  buttons('chapters',['5.2A · Solids','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
-  buttons('topics',topics[state.chapter],state.topic,i=>change(state.chapter,i));
+  if(!section) buttons('chapters',['5.2A · Solids','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
+  const start=section?.[1]??0;
+  buttons('topics',topics[state.chapter].slice(start,section?.[2]),state.topic-start,i=>change(state.chapter,start+i));
   buttons('choices',options(),state.shape,i=>{state.shape=i;state.step=0;state.selected=-1;});
   el('result').textContent='';
   const a=state.chapter===0, t=state.topic;
@@ -214,4 +218,9 @@ model.onpointerup=e=>{
   drag=null;
 };
 model.onpointercancel=()=>drag=null;
+if(section){
+  change(section[0],section[1]);
+  document.querySelector('h1').textContent={solids:'Solids',cut:'Cross-section (Cut)',sketch:'Sketch'}[entry];
+  el('extra-link').hidden=entry!=='solids';
+}
 render();
