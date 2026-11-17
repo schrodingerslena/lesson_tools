@@ -112,20 +112,27 @@ function draw(){
     html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#ffcb77"/><stop offset=".48" stop-color="#ed8b32"/><stop offset="1" stop-color="#8d3915"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
     // Rotate the markings with the sphere, using the same camera as the other solids.
     const radius=112/83;
-    // Two central seams and a bowed panel seam on each side.
+    // The equator wraps around the ball. The bowed seams meet the
+    // pole-to-pole seam near the edges of the opening view.
     const panelSeam=side=>angle=>{
-      const along=Math.cos(angle);
-      const offset=side*(.46+.41*along*along);
-      const width=Math.sqrt(1-offset*offset);
-      return [radius*width*along,radius*offset,radius*width*Math.sin(angle)];
+      const latitude=side*(.24+.48*Math.sin(angle)**2);
+      const width=radius*Math.cos(latitude);
+      return [width*Math.cos(angle),width*Math.sin(angle),radius*Math.sin(latitude)];
     };
     const guides=[
       angle=>[radius*Math.cos(angle),radius*Math.sin(angle),0],
       angle=>[radius*Math.cos(angle),0,radius*Math.sin(angle)],
       panelSeam(1),panelSeam(-1)
     ];
+    const seamYaw=state.yaw-.38, seamPitch=state.pitch-.42;
+    const projectSeam=([x,y,z])=>{
+      const sideways=Math.cos(seamYaw)*x-Math.sin(seamYaw)*y;
+      const forward=Math.sin(seamYaw)*x+Math.cos(seamYaw)*y;
+      return [300+83*sideways,210+83*(Math.sin(seamPitch)*forward-Math.cos(seamPitch)*z),
+        Math.cos(seamPitch)*forward+Math.sin(seamPitch)*z];
+    };
     for(const guide of guides){
-      const points=loop(121).map(i=>project(guide(i*Math.PI/60)));
+      const points=loop(121).map(i=>projectSeam(guide(i*Math.PI/60)));
       for(const front of [true]){
         let path='';
         let contiguous=false;
