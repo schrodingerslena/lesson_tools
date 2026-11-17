@@ -190,8 +190,14 @@ function draw(){
     }
     if(state.chapter===0&&state.topic===2){
       const labels=state.shape===0?'ABCDGHEF':'ABCDEFGHIJKL';
-      pts.forEach(([x,y],i)=>{html+='<text x="'+x+'" y="'+(y-7)+'" text-anchor="middle" font-weight="bold" paint-order="stroke" stroke="white" stroke-width="4">'+labels[i]+'</text>';});
-      el('result').textContent=state.selected>=0?'Vertices: '+faces[state.selected].map(i=>labels[i]).join(' '):'Blue and purple mark the two bases.';
+      const colors=['#9d202d','#135e9a','#176136','#64358c','#854814','#00676b','#a32568','#444c93','#695800','#405e24','#944024','#344155'];
+      pts.forEach(([x,y],i)=>{
+        html+='<g pointer-events="none" fill="'+colors[i]+'"><circle cx="'+x+'" cy="'+y+'" r="4.5" stroke="white" stroke-width="1.5"/><text x="'+x+'" y="'+(y-8)+'" text-anchor="middle" font-weight="bold" paint-order="stroke" stroke="white" stroke-width="4">'+labels[i]+'</text></g>';
+      });
+      const selected=faces[state.selected];
+      el('result').innerHTML=selected
+        ? 'Face <strong>'+selected.map(i=>'<span style="color:'+colors[i]+'">'+labels[i]+'</span>').join('')+'</strong>'
+        : 'Blue and purple mark the two bases.';
     }
   }
   model.innerHTML=html;
