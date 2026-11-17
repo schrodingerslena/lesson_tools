@@ -27,7 +27,7 @@ function buttons(id, labels, selected, action) {
   }));
 }
 function options(){
-  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Scalene triangle','Trapezium'],['Four-sided base','Six-sided base']][state.topic];
+  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square prism','Rectangular prism','Triangular prism (equilateral)','Triangular prism (scalene)','Trapezoidal prism'],['Four-sided base','Six-sided base']][state.topic];
   return state.topic<2?['Cuboid','Triangular prism','Pentagonal prism']:['Cuboid','Triangular prism'];
 }
 function mesh(){
