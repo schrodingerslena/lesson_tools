@@ -217,7 +217,12 @@ const section=Object.hasOwn(entryTopics,entry)?entryTopics[entry]:null;
 function render(){
   if(!section) buttons('chapters',['5.2A · Prisms','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
   const start=section?.[1]??0;
-  if(entry==='solids'){
+  if(entry==='cut'){
+    const mode=state.vertical?2:state.parallel?1:0;
+    buttons('topics',['Free cut','Parallel to base','Vertical to base'],mode,i=>{
+      Object.assign(state,{parallel:i===1,vertical:i===2,tiltX:i===0?.8:0,tiltY:i===0?.25:0,offset:0});
+    });
+  }else if(entry==='solids'){
     const order=[1,0,2];
     buttons('topics',order.map(i=>topics[0][i]),order.indexOf(state.topic),i=>change(0,order[i]));
   }else{
@@ -237,6 +242,12 @@ function render(){
     ][state.shape];
   }else if(t<2){
     el('help').textContent='Drag Move to push the plane through the prism. In Free cut, drag Tilt to change its direction. Drag elsewhere to turn the prism.';
+    if(entry==='cut'){
+      buttons('actions',[state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
+        if(i===0)state.reveal=!state.reveal;
+        else{state.area=!state.area;if(state.area)state.reveal=true;}
+      });
+    }else{
     buttons('actions',['Free cut','Parallel to base','Vertical to base',state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
       if(i<3)Object.assign(state,{parallel:i===1,vertical:i===2,tiltX:i===0?.8:0,tiltY:i===0?.25:0,offset:0});
       if(i===3)state.reveal=!state.reveal;
@@ -244,6 +255,7 @@ function render(){
     });
     const cutMode=state.vertical?2:state.parallel?1:0;
     [...el('actions').children].slice(0,3).forEach((button,i)=>button.setAttribute('aria-pressed',i===cutMode));
+    }
   }else{
     const steps=t===2?['Draw one base','Draw the other base','Join matching vertices']:['Draw one base','Draw the heights','Complete the other base'];
     el('help').textContent=(state.step+1)+' / 3 · '+steps[state.step];
