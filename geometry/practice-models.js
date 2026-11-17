@@ -27,11 +27,12 @@ function buttons(id, labels, selected, action) {
   }));
 }
 function options(){
-  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Trapezium','Parallelogram'],['Four-sided base','Six-sided base']][state.topic];
+  if(state.chapter===0) return [['Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Trapezium','Parallelogram'],['Four-sided base','Six-sided base']][state.topic];
   return state.topic<2?['Cuboid','Triangular prism','Pentagonal prism']:['Cuboid','Triangular prism'];
 }
 function mesh(){
-  const {chapter,topic,shape}=state;
+  const {chapter,topic}=state;
+  const shape=state.shape+(chapter===0&&topic===0?1:0);
   const solids=chapter===0&&topic===0;
   const pyramid=solids&&shape===1, curved=solids&&shape===2;
   let n=4;
@@ -107,7 +108,7 @@ function draw(){
     }
     pts.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y+18)+'">'+String.fromCharCode(65+i)+'</text>';});
     if(state.step>=(mode===0?1:2))top.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y-8)+'">'+String.fromCharCode(65+n+i)+'</text>';});
-  }else if(state.chapter===0&&state.topic===0&&state.shape===3){
+  }else if(state.chapter===0&&state.topic===0&&state.shape===2){
     html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#f3ffff"/><stop offset=".48" stop-color="#88c9d5"/><stop offset="1" stop-color="#23576b"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/><g transform="rotate(-17 300 210)" fill="none" stroke="#174c61" stroke-width="2" pointer-events="none"><path d="M188 210a112 31 0 0 1 224 0" stroke-dasharray="5 5" opacity=".6"/><path d="M188 210a112 31 0 0 0 224 0" opacity=".8"/></g>';
   }else{
     const pts=vertices.map(project);
@@ -123,6 +124,17 @@ function draw(){
       if(curved&&f.i>=2){
         html+=polygon(f.pts,fill,'data-face="'+f.i+'" opacity=".78" style="stroke-width:0"');
       }else html+=polygon(f.pts,fill,'data-face="'+f.i+'" opacity="'+(cut?.52:.9)+'"');
+    }
+    if(state.chapter===0&&state.topic===1&&state.selected>=0){
+      const face=sorted.find(f=>f.i===state.selected);
+      if(face){
+        const center=face.pts.reduce(([x,y],p)=>[x+p[0]/face.pts.length,y+p[1]/face.pts.length],[0,0]);
+        const x=center[0]<300?92:508;
+        const y=Math.max(22,Math.min(398,center[1]));
+        const label=face.i===0?'Lower base':face.i===1?'Upper base':'Lateral face';
+        html+=line(center,[x,y],'#a85809');
+        html+='<g pointer-events="none"><rect x="'+(x-63)+'" y="'+(y-15)+'" width="126" height="30" rx="8" fill="#fff1d2" stroke="#a85809"/><text x="'+x+'" y="'+(y+5)+'" text-anchor="middle" fill="#57310c" font-weight="bold">'+label+'</text></g>';
+      }
     }
     if(section){
       const {center,u,points,flat}=section;
@@ -173,8 +185,11 @@ function render(){
   if(a){
     el('help').textContent=['Drag to turn the solid. Tap a surface. Is every face a polygon?','Choose a base shape. Drag to rotate the prism.','Drag to turn the prism. Tap a face to read its vertex letters.'][t];
     el('actions').replaceChildren();
-    if(t===0&&state.selected>=0)el('result').textContent=state.shape===3||(state.shape===2&&state.selected>=2)?'Curved surface':'Flat face';
-    if(t===1)el('result').textContent='Blue = lower base · Purple = upper base';
+    if(t===0)el('result').textContent=[
+      'A pyramid has one base. Its other faces meet at a single point.',
+      'A cylinder has circular bases and a curved side. A prism has polygonal bases and flat side faces.',
+      'A sphere has a curved surface and no flat bases.'
+    ][state.shape];
   }else if(t<2){
     el('help').textContent='Drag Move to push the plane through the prism. In Free cut, drag Tilt to change its direction. Drag elsewhere to turn the prism.';
     buttons('actions',['Parallel to base','Free cut',state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
