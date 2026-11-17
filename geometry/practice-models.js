@@ -109,17 +109,18 @@ function draw(){
     pts.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y+18)+'">'+String.fromCharCode(65+i)+'</text>';});
     if(state.step>=(mode===0?1:2))top.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y-8)+'">'+String.fromCharCode(65+n+i)+'</text>';});
   }else if(state.chapter===0&&state.topic===0&&state.shape===2){
-    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#f3ffff"/><stop offset=".48" stop-color="#88c9d5"/><stop offset="1" stop-color="#23576b"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
+    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#ffcb77"/><stop offset=".48" stop-color="#ed8b32"/><stop offset="1" stop-color="#8d3915"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
     // Rotate the markings with the sphere, using the same camera as the other solids.
     const radius=112/83;
     const guides=[
       a=>[radius*Math.cos(a),radius*Math.sin(a),0],
       a=>[radius*Math.cos(a),0,radius*Math.sin(a)],
-      a=>[radius*.87*Math.cos(a),radius*.87*Math.sin(a),radius*.49]
+      a=>[radius*.87*Math.cos(a),radius*.49,radius*.87*Math.sin(a)],
+      a=>[radius*.87*Math.cos(a),-radius*.49,radius*.87*Math.sin(a)]
     ];
     for(const guide of guides){
       const points=loop(121).map(i=>project(guide(i*Math.PI/60)));
-      for(const front of [false,true]){
+      for(const front of [true]){
         let path='';
         let contiguous=false;
         for(let i=1;i<points.length;i++){
@@ -129,7 +130,7 @@ function draw(){
           path+='L'+b.slice(0,2).join(' ');
           contiguous=true;
         }
-        html+='<path d="'+path+'" fill="none" stroke="#174c61" stroke-width="1.8" opacity="'+(front?.8:.4)+'" '+(front?'':'stroke-dasharray="5 5"')+' pointer-events="none"/>';
+        html+='<path d="'+path+'" fill="none" stroke="#492512" stroke-width="3" opacity="'+(front?.8:.4)+'" '+(front?'':'stroke-dasharray="5 5"')+' pointer-events="none"/>';
       }
     }
   }else{
@@ -210,7 +211,7 @@ function render(){
     if(t===0)el('result').textContent=[
       'A pyramid has one base. Its other faces meet at a single point.',
       'A cylinder has circular bases and a curved side. A prism has polygonal bases and flat side faces.',
-      'A sphere has a curved surface and no flat bases.'
+      'A basketball models a sphere. It has a curved surface and no flat bases.'
     ][state.shape];
   }else if(t<2){
     el('help').textContent='Drag Move to push the plane through the prism. In Free cut, drag Tilt to change its direction. Drag elsewhere to turn the prism.';
