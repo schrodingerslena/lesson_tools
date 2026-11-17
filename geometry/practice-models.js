@@ -27,17 +27,17 @@ function buttons(id, labels, selected, action) {
   }));
 }
 function options(){
-  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square prism','Rectangular prism','Triangular prism (equilateral)','Triangular prism (scalene)','Trapezoidal prism'],['Four-sided base','Six-sided base']][state.topic];
+  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Trapezium','Parallelogram'],['Four-sided base','Six-sided base']][state.topic];
   return state.topic<2?['Cuboid','Triangular prism','Pentagonal prism']:['Cuboid','Triangular prism'];
 }
 function mesh(){
-  const {chapter,topic,shape,oblique}=state;
+  const {chapter,topic,shape}=state;
   const solids=chapter===0&&topic===0;
   const pyramid=solids&&shape===1, curved=solids&&shape===2;
   let n=4;
   if(pyramid) n=5;
   if(curved) n=48;
-  if(chapter===0&&topic===1&&(shape===2||shape===3)) n=3;
+  if(chapter===0&&topic===1&&shape===2) n=3;
   if(chapter===0&&topic===2&&shape===1) n=6;
   if(chapter===1&&shape===1) n=3;
   if(chapter===1&&shape===2) n=5;
@@ -46,10 +46,9 @@ function mesh(){
     const width=chapter===0&&topic===1&&shape===0?1:1.4;
     base=[[-width,-1],[width,-1],[width,1],[-width,1]];
   }
-  if(chapter===0&&topic===1&&shape===3) base=[[-1.1,-.8],[1.3,-.8],[-.65,1]];
-  if(chapter===0&&topic===1&&shape===4) base=[[-1.4,1],[1.4,1],[.75,-1],[-.75,-1]];
-  const shift=chapter===0&&topic===1&&oblique?.85:0;
-  const vertices=[...base.map(([x,y])=>[x,y,-1]),...(pyramid?[[0,0,1.25]]:base.map(([x,y])=>[x+shift,y,1]))];
+  if(chapter===0&&topic===1&&shape===3) base=[[-1.35,1],[1.35,1],[1.35,-1],[-.35,-1]];
+  if(chapter===0&&topic===1&&shape===4) base=[[-1.5,1],[.65,1],[1.5,-1],[-.65,-1]];
+  const vertices=[...base.map(([x,y])=>[x,y,-1]),...(pyramid?[[0,0,1.25]]:base.map(([x,y])=>[x,y,1]))];
   const faces=[loop(n).reverse()];
   if(!pyramid) faces.push(loop(n).map(i=>i+n));
   for(let i=0;i<n;i++){
@@ -151,7 +150,7 @@ function draw(){
 }
 const depth=pts=>pts.reduce((sum,p)=>sum+p[2],0)/pts.length;
 function change(chapter,topic){
-  Object.assign(state,{chapter,topic,shape:0,step:0,selected:-1,oblique:false,yaw:.6,pitch:.56});
+  Object.assign(state,{chapter,topic,shape:0,step:0,selected:-1,yaw:.6,pitch:.56});
   resetCut();
   if(chapter===1&&topic===0)Object.assign(state,{parallel:false,tiltX:.8,tiltY:.25});
 }
@@ -167,13 +166,13 @@ function render(){
   }else{
     buttons('topics',topics[state.chapter].slice(start,section?.[2]),state.topic-start,i=>change(state.chapter,start+i));
   }
+  el('base-label').hidden=!(state.chapter===0&&state.topic===1);
   buttons('choices',options(),state.shape,i=>{state.shape=i;state.step=0;state.selected=-1;});
   el('result').textContent='';
   const a=state.chapter===0, t=state.topic;
   if(a){
-    el('help').textContent=['Drag to turn the solid. Tap a surface. Is every face a polygon?','Change the base shape or tilt the sides. Which lateral faces are rectangles?','Drag to turn the prism. Tap a face to read its vertex letters.'][t];
-    if(t===1)buttons('actions',['Right','Oblique'],Number(state.oblique),i=>state.oblique=Boolean(i));
-    else el('actions').replaceChildren();
+    el('help').textContent=['Drag to turn the solid. Tap a surface. Is every face a polygon?','Choose a base shape. Drag to rotate the prism.','Drag to turn the prism. Tap a face to read its vertex letters.'][t];
+    el('actions').replaceChildren();
     if(t===0&&state.selected>=0)el('result').textContent=state.shape===3||(state.shape===2&&state.selected>=2)?'Curved surface':'Flat face';
     if(t===1)el('result').textContent='Blue = lower base · Purple = upper base';
   }else if(t<2){
