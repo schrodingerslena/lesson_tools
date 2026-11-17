@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prism Volume and Lateral Area</title>
+<style>
+body{font:18px system-ui;background:#eff5f4;color:#18323d;margin:0}main{max-width:900px;margin:auto;padding:20px}button{font:inherit;padding:10px 14px;margin:4px;border:1px solid #819a9b;border-radius:9px;background:white;color:inherit}button[aria-pressed=true]{background:#185c56;color:white}svg{width:100%;display:block;background:white;border-radius:16px;margin-top:12px}a{color:#185c56}#readout{font-weight:650}
+</style>
+<main>
+<a href="./">← Geometry Lab</a>
+<h1>Prism Volume and Lateral Area</h1>
+<nav aria-label="Demonstration"><button id="volume">Stack layers</button><button id="strip">Unwrap the sides</button></nav>
+<div id="controls"></div>
+<svg id="diagram" viewBox="0 0 640 350" role="img" aria-label="Prism demonstration"></svg>
+<p id="readout" aria-live="polite"></p>
+<p id="guide"></p>
+</main>
+<script>
+const el=id=>document.getElementById(id);
+let mode='volume',layers=0,turned=false,joined=false,edge=-1;
+const colors=['#176b99','#a34c11','#2b7243','#884a99'];
+const base=[[0,0],[4,0],[4,3],[0,3]],lengths=[4,3,4,3];
+const polygon=(points,fill)=>'<polygon points="'+points.map(p=>p.join(',')).join(' ')+'" fill="'+fill+'" stroke="#365c60" stroke-width="1.5"/>';
+const line=(a,b,color,width=2)=>'<path d="M'+a.join(' ')+' L'+b.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="'+width+'"/>';
+const label=(x,y,value)=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" fill="#18323d" font-size="17">'+value+'</text>';
+function stack(){
+  const project=([x,y],z)=>[258+48*x-35*y,210+13*x+18*y-42*z];
+  const at=z=>base.map(p=>project(p,z));
+  let svg=polygon(at(0),'#8bd3c7')+label(94,316,'Base area = 12 cm²');
+  for(let i=0;i<layers;i++){
+    const lower=at(i),upper=at(i+1);
+    for(const [a,b] of [[1,2],[2,3]]) svg+=polygon([lower[a],lower[b],upper[b],upper[a]],i%2?'#9ecbe0':'#c0e0ee');
+    svg+=polygon(upper,'#8bd3c7');
+  }
+  return svg;
+}
+function unwrap(){
+  const outline=[[48,64],[188,64],[188,169],[48,169]];
+  const rotate=([x,y])=>turned?[118-(y-116),116+(x-118)]:[x,y];
+  const points=outline.map(rotate);
+  let svg=polygon(points,'#d9efea')+label(118,121,'One base');
+  let x=50;
+  lengths.forEach((length,i)=>{
+    const color=colors[i],width=length*35;
+    const y=joined?226:239+(i%2)*14;
+    const start=x+(joined?0:i*12);
+    svg+=line(points[i],points[(i+1)%4],color,edge===i?9:4);
+    svg+=polygon([[start,y-44],[start+width,y-44],[start+width,y],[start,y]],edge===i?'#ffe7a5':'#e4efef');
+    svg+=line([start,y],[start+width,y],color,edge===i?9:4);
+    svg+=label(start+width/2,y+24,length+' cm');
+    x+=width;
+  });
+  return svg+label(320,320,joined?'Side strip length = 14 cm':'Four lateral faces');
+}
+function render(){
+  const volume=mode==='volume';
+  el('volume').setAttribute('aria-pressed',volume);
+  el('strip').setAttribute('aria-pressed',!volume);
+  el('controls').innerHTML=volume
+    ? '<button id="add" '+(layers===5?'disabled':'')+'>Add 1 cm layer</button><button id="reset">Start over</button>'
+    : '<button id="join">'+(joined?'Separate faces':'Join faces into a strip')+'</button><button id="turn">Turn the base</button>'+lengths.map((_,i)=>'<button data-edge="'+i+'" aria-pressed="'+(edge===i)+'" style="border-left:6px solid '+colors[i]+'">Edge '+(i+1)+'</button>').join('');
+  el('diagram').innerHTML=volume?stack():unwrap();
+  el('readout').textContent=volume?(layers?'12 cm² × '+layers+' cm = '+12*layers+' cm³':'4 cm × 3 cm = 12 cm²'):joined?'Base perimeter = strip length = 4 + 3 + 4 + 3 = 14 cm':'Match each coloured base edge to the same edge on a lateral face.';
+  el('guide').textContent=volume?'Each 1 cm layer has the same base area. Stack the layers to build the prism.':'A lateral face shares one edge with each base. Turn the base and follow the colours.';
+  if(volume){el('add').onclick=()=>{layers++;render();(el('add').disabled?el('reset'):el('add')).focus()};el('reset').onclick=()=>{layers=0;render();el('add').focus()};}
+  else{
+    el('join').onclick=()=>{joined=!joined;render();el('join').focus()};
+    el('turn').onclick=()=>{turned=!turned;render();el('turn').focus()};
+    document.querySelectorAll('[data-edge]').forEach(button=>button.onclick=()=>{edge=Number(button.dataset.edge);render();document.querySelector('[data-edge="'+edge+'"]').focus()});
+  }
+}
+el('volume').onclick=()=>{mode='volume';render()};
+el('strip').onclick=()=>{mode='strip';render()};
+render();
+</script>
+</html>
