@@ -26,8 +26,10 @@ function buttons(id, labels, selected, action) {
     return button;
   }));
 }
+const prismBases=['Square','Rectangle','Equilateral triangle','Trapezium','Parallelogram'];
 function options(){
-  if(state.chapter===0) return [['Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Trapezium','Parallelogram'],['Quadrilateral base','Hexagon base']][state.topic];
+  if(entry==='cut')return prismBases.map(shape=>shape+' base');
+  if(state.chapter===0) return [['Pentagonal pyramid','Cylinder','Sphere'],prismBases,['Quadrilateral base','Hexagon base']][state.topic];
   return state.topic<2?['Cuboid','Triangular prism','Pentagonal prism']:['Cuboid','Triangular prism'];
 }
 function mesh(){
@@ -38,17 +40,18 @@ function mesh(){
   let n=4;
   if(pyramid) n=5;
   if(curved) n=48;
-  if(chapter===0&&topic===1&&shape===2) n=3;
+  const prismBase=chapter===0&&topic===1||entry==='cut';
+  if(prismBase&&shape===2) n=3;
   if(chapter===0&&topic===2&&shape===1) n=6;
-  if(chapter===1&&shape===1) n=3;
-  if(chapter===1&&shape===2) n=5;
+  if(!prismBase&&chapter===1&&shape===1) n=3;
+  if(!prismBase&&chapter===1&&shape===2) n=5;
   let base=loop(n).map(i=>{const a=2*Math.PI*i/n-Math.PI/2;return [1.24*Math.cos(a),1.24*Math.sin(a)];});
   if(n===4) {
-    const width=chapter===0&&topic===1&&shape===0?1:1.4;
+    const width=prismBase&&shape===0?1:1.4;
     base=[[-width,-1],[width,-1],[width,1],[-width,1]];
   }
-  if(chapter===0&&topic===1&&shape===3) base=[[-1.35,1],[1.35,1],[1.35,-1],[-.35,-1]];
-  if(chapter===0&&topic===1&&shape===4) base=[[-1.5,1],[.65,1],[1.5,-1],[-.65,-1]];
+  if(prismBase&&shape===3) base=[[-1.35,1],[1.35,1],[1.35,-1],[-.35,-1]];
+  if(prismBase&&shape===4) base=[[-1.5,1],[.65,1],[1.5,-1],[-.65,-1]];
   const vertices=[...base.map(([x,y])=>[x,y,-1]),...(pyramid?[[0,0,1.25]]:base.map(([x,y])=>[x,y,1]))];
   const faces=[loop(n).reverse()];
   if(!pyramid) faces.push(loop(n).map(i=>i+n));
@@ -174,7 +177,7 @@ function draw(){
     }
     if(section){
       const {center,u,points,flat}=section;
-      if(points.length>=3)html+=polygon(points.map(project),state.reveal?'#f39628':'none','stroke-dasharray="7 5"');
+      if(points.length>=3)html+=polygon(points.map(project),(entry==='cut'||state.reveal)?'#f39628':'none','stroke-dasharray="7 5"');
       const handle=(p,label,kind)=>{
         const [x,y]=project(p);
         return '<g data-drag="'+kind+'" transform="translate('+x+' '+y+')"><rect x="-44" y="-24" width="88" height="48" rx="16" fill="#a85009"/><text text-anchor="middle" y="6" fill="white" font-weight="bold">'+label+'</text></g>';
@@ -182,7 +185,10 @@ function draw(){
       html+=handle(center,'↕ Move','move');
       if(!state.parallel&&!state.vertical)html+=handle(add(center,scale(u,1.65)),'↻ Tilt','tilt');
       const result=el('result');
-      if(state.reveal&&flat.length>=3){
+      if(entry==='cut'){
+        const uniform=!state.vertical&&Math.hypot(state.tiltX,state.tiltY)<1e-8;
+        result.textContent=flat.length<3?'No cross section':uniform?'Uniform cross section':'Not a uniform cross section';
+      }else if(state.reveal&&flat.length>=3){
         const area=Math.abs(flat.reduce((sum,[x,y],i)=>{const [a,b]=flat[(i+1)%flat.length];return sum+x*b-y*a;},0))/2;
         const extent=Math.max(2,...flat.flat().map(Math.abs));
         result.innerHTML='<strong>Cross section</strong><svg viewBox="-'+extent+' -'+extent+' '+(2*extent)+' '+(2*extent)+'" aria-label="Cross section viewed straight on">'+polygon(flat,'#f6af55','style="stroke-width:.035"')+'</svg>'+(state.area?'<p>'+area.toFixed(2)+' square units</p>':'');
@@ -243,10 +249,7 @@ function render(){
   }else if(t<2){
     el('help').textContent='Drag Move to push the plane through the prism. In Free cut, drag Tilt to change its direction. Drag elsewhere to turn the prism.';
     if(entry==='cut'){
-      buttons('actions',[state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
-        if(i===0)state.reveal=!state.reveal;
-        else{state.area=!state.area;if(state.area)state.reveal=true;}
-      });
+      el('actions').replaceChildren();
     }else{
     buttons('actions',['Free cut','Parallel to base','Vertical to base',state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
       if(i<3)Object.assign(state,{parallel:i===1,vertical:i===2,tiltX:i===0?.8:0,tiltY:i===0?.25:0,offset:0});
