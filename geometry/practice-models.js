@@ -156,7 +156,7 @@ function draw(){
       html+=polygon([corner(-1.8,-1.8),corner(1.8,-1.8),corner(1.8,1.8),corner(-1.8,1.8)].map(project),'#ffbd64','opacity=".34"');
     }
     for(const f of sorted){
-      const fill=state.selected===f.i?'#ffd07b':f.i===0?'#297abd':f.i===1&&!pyramid?'#9e56b6':'#b9d0d4';
+      const fill=(state.selected===f.i||(curved&&state.selected>=2&&f.i>=2))?'#ffd07b':f.i===0?'#297abd':f.i===1&&!pyramid?'#9e56b6':'#b9d0d4';
       if(curved&&f.i>=2){
         html+=polygon(f.pts,fill,'data-face="'+f.i+'" opacity=".78" style="stroke-width:0"');
       }else html+=polygon(f.pts,fill,'data-face="'+f.i+'" opacity="'+(cut?.52:.9)+'"');
