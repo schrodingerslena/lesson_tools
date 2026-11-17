@@ -2,7 +2,7 @@
 const el = id => document.getElementById(id);
 const model = el('model');
 const topics = [
-  ['Polyhedra','Prism types','Name the faces'],
+  ['Other solids','Prism','Name the faces'],
   ['Cross sections','Uniform sections','Blank paper','Isometric','Oblique']
 ];
 const state = {chapter:0, topic:0, shape:0, yaw:.6, pitch:.56, step:0, selected:-1};
@@ -27,7 +27,7 @@ function buttons(id, labels, selected, action) {
   }));
 }
 function options(){
-  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Scalene triangle'],['Four-sided base','Six-sided base']][state.topic];
+  if(state.chapter===0) return [['Cuboid','Pentagonal pyramid','Cylinder','Sphere'],['Square','Rectangle','Equilateral triangle','Scalene triangle','Trapezium'],['Four-sided base','Six-sided base']][state.topic];
   return state.topic<2?['Cuboid','Triangular prism','Pentagonal prism']:['Cuboid','Triangular prism'];
 }
 function mesh(){
@@ -37,7 +37,7 @@ function mesh(){
   let n=4;
   if(pyramid) n=5;
   if(curved) n=48;
-  if(chapter===0&&topic===1&&shape>=2) n=3;
+  if(chapter===0&&topic===1&&(shape===2||shape===3)) n=3;
   if(chapter===0&&topic===2&&shape===1) n=6;
   if(chapter===1&&shape===1) n=3;
   if(chapter===1&&shape===2) n=5;
@@ -47,6 +47,7 @@ function mesh(){
     base=[[-width,-1],[width,-1],[width,1],[-width,1]];
   }
   if(chapter===0&&topic===1&&shape===3) base=[[-1.1,-.8],[1.3,-.8],[-.65,1]];
+  if(chapter===0&&topic===1&&shape===4) base=[[-1.4,1],[1.4,1],[.75,-1],[-.75,-1]];
   const shift=chapter===0&&topic===1&&oblique?.85:0;
   const vertices=[...base.map(([x,y])=>[x,y,-1]),...(pyramid?[[0,0,1.25]]:base.map(([x,y])=>[x+shift,y,1]))];
   const faces=[loop(n).reverse()];
@@ -108,7 +109,7 @@ function draw(){
     pts.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y+18)+'">'+String.fromCharCode(65+i)+'</text>';});
     if(state.step>=(mode===0?1:2))top.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y-8)+'">'+String.fromCharCode(65+n+i)+'</text>';});
   }else if(state.chapter===0&&state.topic===0&&state.shape===3){
-    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#dff8fa"/><stop offset="1" stop-color="#3f8499"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
+    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#f3ffff"/><stop offset=".48" stop-color="#88c9d5"/><stop offset="1" stop-color="#23576b"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/><g transform="rotate(-17 300 210)" fill="none" stroke="#174c61" stroke-width="2" pointer-events="none"><path d="M188 210a112 31 0 0 1 224 0" stroke-dasharray="5 5" opacity=".6"/><path d="M188 210a112 31 0 0 0 224 0" opacity=".8"/></g>';
   }else{
     const pts=vertices.map(project);
     const sorted=faces.map((indices,i)=>({i,pts:indices.map(j=>pts[j])})).sort((a,b)=>depth(a.pts)-depth(b.pts));
@@ -160,7 +161,12 @@ const section=Object.hasOwn(entryTopics,entry)?entryTopics[entry]:null;
 function render(){
   if(!section) buttons('chapters',['5.2A · Solids','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
   const start=section?.[1]??0;
-  buttons('topics',topics[state.chapter].slice(start,section?.[2]),state.topic-start,i=>change(state.chapter,start+i));
+  if(entry==='solids'){
+    const order=[1,0,2];
+    buttons('topics',order.map(i=>topics[0][i]),order.indexOf(state.topic),i=>change(0,order[i]));
+  }else{
+    buttons('topics',topics[state.chapter].slice(start,section?.[2]),state.topic-start,i=>change(state.chapter,start+i));
+  }
   buttons('choices',options(),state.shape,i=>{state.shape=i;state.step=0;state.selected=-1;});
   el('result').textContent='';
   const a=state.chapter===0, t=state.topic;
@@ -219,7 +225,7 @@ model.onpointerup=e=>{
 };
 model.onpointercancel=()=>drag=null;
 if(section){
-  change(section[0],section[1]);
+  change(section[0],entry==='solids'?1:section[1]);
   document.querySelector('h1').textContent={solids:'Solids',cut:'Cross-section (Cut)',sketch:'Sketch'}[entry];
   el('extra-link').hidden=entry!=='solids';
 }
