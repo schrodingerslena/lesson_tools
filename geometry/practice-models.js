@@ -109,7 +109,29 @@ function draw(){
     pts.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y+18)+'">'+String.fromCharCode(65+i)+'</text>';});
     if(state.step>=(mode===0?1:2))top.forEach(([x,y],i)=>{html+='<text x="'+(x+5)+'" y="'+(y-8)+'">'+String.fromCharCode(65+n+i)+'</text>';});
   }else if(state.chapter===0&&state.topic===0&&state.shape===2){
-    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#f3ffff"/><stop offset=".48" stop-color="#88c9d5"/><stop offset="1" stop-color="#23576b"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/><g transform="rotate(-17 300 210)" fill="none" stroke="#174c61" stroke-width="2" pointer-events="none"><path d="M188 210a112 31 0 0 1 224 0" stroke-dasharray="5 5" opacity=".6"/><path d="M188 210a112 31 0 0 0 224 0" opacity=".8"/></g>';
+    html='<defs><radialGradient id="ball" cx="32%" cy="24%"><stop stop-color="#f3ffff"/><stop offset=".48" stop-color="#88c9d5"/><stop offset="1" stop-color="#23576b"/></radialGradient></defs><circle cx="300" cy="210" r="112" fill="url(#ball)" stroke="#254554" stroke-width="2" data-face="0"/>';
+    // Rotate the markings with the sphere, using the same camera as the other solids.
+    const radius=112/83;
+    const guides=[
+      a=>[radius*Math.cos(a),radius*Math.sin(a),0],
+      a=>[radius*Math.cos(a),0,radius*Math.sin(a)],
+      a=>[radius*.87*Math.cos(a),radius*.87*Math.sin(a),radius*.49]
+    ];
+    for(const guide of guides){
+      const points=loop(121).map(i=>project(guide(i*Math.PI/60)));
+      for(const front of [false,true]){
+        let path='';
+        let contiguous=false;
+        for(let i=1;i<points.length;i++){
+          const a=points[i-1],b=points[i];
+          if((a[2]+b[2]>=0)!==front){contiguous=false;continue;}
+          if(!contiguous)path+='M'+a.slice(0,2).join(' ');
+          path+='L'+b.slice(0,2).join(' ');
+          contiguous=true;
+        }
+        html+='<path d="'+path+'" fill="none" stroke="#174c61" stroke-width="1.8" opacity="'+(front?.8:.4)+'" '+(front?'':'stroke-dasharray="5 5"')+' pointer-events="none"/>';
+      }
+    }
   }else{
     const pts=vertices.map(project);
     const sorted=faces.map((indices,i)=>({i,pts:indices.map(j=>pts[j])})).sort((a,b)=>depth(a.pts)-depth(b.pts));
