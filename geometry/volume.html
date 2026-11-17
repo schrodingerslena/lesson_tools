@@ -17,7 +17,12 @@ body{font:18px system-ui;background:#eff5f4;color:#18323d;margin:0}main{max-widt
 </main>
 <script>
 const el=id=>document.getElementById(id);
-let mode='volume',layers=0,roll=0,rolling=false;
+const entry=new URLSearchParams(location.search).get('topic');
+if(entry==='surface'||entry==='volume'){
+  document.querySelector('h1').textContent=entry==='surface'?'Surface Area':'Volume';
+  document.querySelector('nav').hidden=true;
+}
+let mode=entry==='surface'?'strip':'volume',layers=0,roll=0,rolling=false;
 const colors=['#176b99','#a34c11','#2b7243','#884a99'];
 const lengths=[4,3,4,3];
 const star=Array.from({length:10},(_,i)=>{
