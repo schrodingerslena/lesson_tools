@@ -6,7 +6,7 @@ const topics = [
   ['Cross sections','Uniform sections','Blank paper','Isometric','Oblique']
 ];
 const state = {chapter:0, topic:0, shape:0, yaw:.6, pitch:.56, step:0, selected:-1};
-const resetCut = () => Object.assign(state,{offset:0, tiltX:0, tiltY:0, parallel:true, reveal:false, area:false});
+const resetCut = () => Object.assign(state,{offset:0, tiltX:0, tiltY:0, parallel:true, vertical:false, reveal:false, area:false});
 resetCut();
 const add=(a,b)=>a.map((x,i)=>x+b[i]);
 const sub=(a,b)=>a.map((x,i)=>x-b[i]);
@@ -61,7 +61,7 @@ function mesh(){
   return {vertices,faces,edges,n,pyramid,curved};
 }
 function cutGeometry(vertices,edges){
-  const normal=unit([state.tiltX,state.tiltY,1]);
+  const normal=unit(state.vertical?[1,0,0]:[state.tiltX,state.tiltY,1]);
   const u=unit(cross([0,1,0],normal)),v=cross(normal,u);
   const center=scale(normal,state.offset);
   const points=[];
@@ -180,7 +180,7 @@ function draw(){
         return '<g data-drag="'+kind+'" transform="translate('+x+' '+y+')"><rect x="-44" y="-24" width="88" height="48" rx="16" fill="#a85009"/><text text-anchor="middle" y="6" fill="white" font-weight="bold">'+label+'</text></g>';
       };
       html+=handle(center,'↕ Move','move');
-      if(!state.parallel)html+=handle(add(center,scale(u,1.65)),'↻ Tilt','tilt');
+      if(!state.parallel&&!state.vertical)html+=handle(add(center,scale(u,1.65)),'↻ Tilt','tilt');
       const result=el('result');
       if(state.reveal&&flat.length>=3){
         const area=Math.abs(flat.reduce((sum,[x,y],i)=>{const [a,b]=flat[(i+1)%flat.length];return sum+x*b-y*a;},0))/2;
@@ -215,7 +215,7 @@ const entry=new URLSearchParams(location.search).get('topic');
 const entryTopics={solids:[0,0,3],cut:[1,0,2],sketch:[1,2,5]};
 const section=Object.hasOwn(entryTopics,entry)?entryTopics[entry]:null;
 function render(){
-  if(!section) buttons('chapters',['5.2A · Solids','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
+  if(!section) buttons('chapters',['5.2A · Prisms','5.2B · Cut and sketch'],state.chapter,i=>change(i,0));
   const start=section?.[1]??0;
   if(entry==='solids'){
     const order=[1,0,2];
@@ -237,13 +237,13 @@ function render(){
     ][state.shape];
   }else if(t<2){
     el('help').textContent='Drag Move to push the plane through the prism. In Free cut, drag Tilt to change its direction. Drag elsewhere to turn the prism.';
-    buttons('actions',['Parallel to base','Free cut',state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
-      if(i===0)Object.assign(state,{parallel:true,tiltX:0,tiltY:0,offset:Math.max(-.9,Math.min(.9,state.offset))});
-      if(i===1){state.parallel=false;if(!state.tiltX&&!state.tiltY)state.tiltX=.65;}
-      if(i===2)state.reveal=!state.reveal;
-      if(i===3){state.area=!state.area;if(state.area)state.reveal=true;}
+    buttons('actions',['Free cut','Parallel to base','Vertical to base',state.reveal?'Hide cross section':'Show cross section',state.area?'Hide area':'Show area'],-1,i=>{
+      if(i<3)Object.assign(state,{parallel:i===1,vertical:i===2,tiltX:i===0?.8:0,tiltY:i===0?.25:0,offset:0});
+      if(i===3)state.reveal=!state.reveal;
+      if(i===4){state.area=!state.area;if(state.area)state.reveal=true;}
     });
-    [...el('actions').children].slice(0,2).forEach((b,i)=>b.setAttribute('aria-pressed',i===Number(!state.parallel)));
+    const cutMode=state.vertical?2:state.parallel?1:0;
+    [...el('actions').children].slice(0,3).forEach((button,i)=>button.setAttribute('aria-pressed',i===cutMode));
   }else{
     const steps=t===2?['Draw one base','Draw the other base','Join matching vertices']:['Draw one base','Draw the heights','Complete the other base'];
     el('help').textContent=(state.step+1)+' / 3 · '+steps[state.step];
@@ -285,7 +285,7 @@ model.onpointerup=e=>{
 model.onpointercancel=()=>drag=null;
 if(section){
   change(section[0],entry==='solids'?1:section[1]);
-  document.querySelector('h1').textContent={solids:'Solids',cut:'Cross-section (Cut)',sketch:'Sketch'}[entry];
+  document.querySelector('h1').textContent={solids:'Prisms',cut:'Cross-section (Cut)',sketch:'Sketch'}[entry];
   el('extra-link').hidden=entry!=='solids';
 }
 render();
