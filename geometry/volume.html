@@ -37,18 +37,21 @@ function stack(){
   const project=([x,y],z)=>[275+starScale*(43*x-15*y),242+starScale*(8*x+24*y)-37*z];
   const at=z=>star.map(p=>project(p,z));
   let svg=polygon(at(0),'#f2aebe');
-  for(let i=0;i<layers;i++){
-    const lower=at(i),upper=at(i+1);
+  const complete=layers===5;
+  const step=complete?layers:1;
+  for(let i=0;i<layers;i+=step){
+    const lower=at(i),upper=at(i+step);
     for(let a=0;a<star.length;a++){
       const b=(a+1)%star.length;
-      if(lower[b][0]<=lower[a][0])continue;
-      svg+=polygon([lower[a],lower[b],upper[b],upper[a]],i%2?'#c96c89':'#e491a9');
+      if(lower[b][0]>=lower[a][0])continue;
+      svg+=polygon([lower[a],lower[b],upper[b],upper[a]],(complete?a:i)%2?'#c96c89':'#e491a9');
     }
     svg+=polygon(upper,'#f2aebe');
   }
   const bottom=242,top=bottom-37*layers;
   svg+=line([437,bottom],[437,top],'#185c56');
   for(const y of [bottom,top])svg+=line([428,y],[446,y],'#185c56');
+  if(complete)svg+=label(275,323,'Star prism');
   return svg+label(526,(bottom+top)/2+6,'Height = '+layers+' cm');
 }
 function unwrap(){
@@ -99,7 +102,7 @@ function render(){
     : '<button id="roll" '+(roll>=3?'disabled':'')+'>Roll to next edge</button><button id="again">Start over</button>';
   el('diagram').innerHTML=volume?stack():unwrap();
   el('readout').textContent=volume?(layers?'12 cm² × '+layers+' cm = '+12*layers+' cm³':'Star base area = 12 cm²'):roll===3?'Base perimeter = strip length = 4 + 3 + 4 + 3 = 14 cm':'Edges matched: '+(Math.floor(roll)+1)+' of 4';
-  el('guide').textContent=volume?'Each layer is 1 cm thick. Volume = base area × height.':'Watch each coloured base edge land on the matching edge of the net.';
+  el('guide').textContent=volume?(layers===5?'The five layers form one star prism.':'Each layer is 1 cm thick. Volume = base area × height.'):'Watch each coloured base edge land on the matching edge of the net.';
   if(volume){el('add').onclick=()=>{layers++;render();(el('add').disabled?el('reset'):el('add')).focus()};el('reset').onclick=()=>{layers=0;render();el('add').focus()};}
   else{
     el('roll').onclick=rollNext;
