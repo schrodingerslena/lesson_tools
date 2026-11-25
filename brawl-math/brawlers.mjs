@@ -1,2 +1,21 @@
 export const brawlers=[['Shelly','Damage Dealer','#ae74ea'],['Colt','Damage Dealer','#ff737d'],['Nita','Controller','#e9914c'],['Poco','Support','#54cba4'],['El Primo','Tank','#57a9ed'],['Brock','Damage Dealer','#c29b78'],['Jessie','Controller','#f6c957'],['Bull','Tank','#909bb7'],['Barley','Support','#77bdad'],['Piper','Damage Dealer','#e993c3'],['Frank','Tank','#9b91d2'],['Byron','Support','#76bbc9']].map(([name,category,color],id)=>({id,name,category,color}));
-export function portrait(b){return `<svg viewBox="0 0 100 90" role="img" aria-label="Original ${b.name} placeholder"><path d="M12 90Q12 58 50 58T88 90" fill="#182039"/><circle cx="50" cy="40" r="27" fill="${b.color}"/><path d="M23 35Q21 4 50 9Q80 4 77 35L64 23 35 28Z" fill="#20243c"/><path d="M30 36H70V47H30Z" fill="#fff"/><path d="M39 36V46M60 36V46" stroke="#182039" stroke-width="6"/><path d="M42 56H58" stroke="#182039" stroke-width="4"/><path d="m50 68 5 9 10 2-8 7H43l-8-7 10-2Z" fill="${b.color}"/></svg>`;}
+const portraitUrls = {
+  "shelly": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_shelly_new_big.png",
+  "colt": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_colt_new_big.png",
+  "nita": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_nita_new_big.png",
+  "poco": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_poco_new_big.png",
+  "el-primo": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_primo_new_big.png",
+  "brock": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/OLD/hero_icon_brock_big.png",
+  "jessie": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_jess_new_big.png",
+  "bull": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_bull_big.png",
+  "barley": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_barley_new_big.png",
+  "piper": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_piper_new_big.png",
+  "frank": "https://raw.githubusercontent.com/ManinderAngural/BrawlStarsOfficial-FanKit/a3af051fcf70fdc4bd7261191cfd984ca8411546/Brawler%20Graphics/Brawler%20icon/hero_icon_frank_new.png"
+};
+export const portraitMode = 'fan-kit';
+export function portrait(b, mode = portraitMode) {
+  if (mode === 'fan-kit' && b.name !== 'Byron') {
+    const slug = b.name.toLowerCase().replaceAll(' ', '-');
+    return `<img class="character-portrait" src="${portraitUrls[slug]}" alt="${b.name}" width="85" height="80">`;
+  }
+return `<svg viewBox="0 0 100 90" role="img" aria-label="Original ${b.name} placeholder"><path d="M12 90Q12 58 50 58T88 90" fill="#182039"/><circle cx="50" cy="40" r="27" fill="${b.color}"/><path d="M23 35Q21 4 50 9Q80 4 77 35L64 23 35 28Z" fill="#20243c"/><path d="M30 36H70V47H30Z" fill="#fff"/><path d="M39 36V46M60 36V46" stroke="#182039" stroke-width="6"/><path d="M42 56H58" stroke="#182039" stroke-width="4"/><path d="m50 68 5 9 10 2-8 7H43l-8-7 10-2Z" fill="${b.color}"/></svg>`;}

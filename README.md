@@ -8,7 +8,7 @@ Static English-language classroom tools for Hong Kong secondary mathematics:
 
 ## Brawl Math
 
-Five modules share 12 configurable Brawler placeholders, with original inline SVG portraits and simplified classroom categories. No official game graphics, remote fonts, APIs, accounts or database are used.
+Five modules share 12 configurable Brawler placeholders, with original inline SVG portraits and simplified classroom categories. Portrait sources and display configuration are documented in [ASSET_LICENSES.md](ASSET_LICENSES.md).
 
 - **Team Builder:** choose 3, rearrange, save unique teams and detect duplicates. Defaults to 6 available Brawlers.
 - **Duel Arena:** ordered slots, click selection, mouse drag swaps and keyboard/touch swap buttons. Explore the six orders of one team.
